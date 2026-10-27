@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TermFold: Linux and AI coding agents on Android</title>
+<meta name="description" content="TermFold runs a real Debian system inside an Android app, so you can use git, Node, Python and coding agents like Claude Code and Codex on a tablet. No root. Free and open source.">
+<link rel="canonical" href="https://bibarud.github.io/TermFold/">
+<link rel="icon" href="media/logo.png">
+<meta name="theme-color" content="#f6f2ea">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="TermFold: Linux and AI coding agents on Android">
+<meta property="og:description" content="A real Debian system and coding agents on your Android tablet. No root. Free and open source.">
+<meta property="og:url" content="https://bibarud.github.io/TermFold/">
+<meta property="og:image" content="https://bibarud.github.io/TermFold/media/social-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="TermFold: Linux and AI coding agents on Android">
+<meta name="twitter:description" content="A real Debian system and coding agents on your Android tablet. No root.">
+<meta name="twitter:image" content="https://bibarud.github.io/TermFold/media/social-preview.png">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "TermFold",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Android 8.0+",
+  "description": "A full Debian Linux environment inside an Android app, with AI coding agents such as Claude Code, Codex, Gemini CLI, OpenCode and Pi. No root required.",
+  "url": "https://bibarud.github.io/TermFold/",
+  "downloadUrl": "https://github.com/Bibarud/TermFold/releases/latest",
+  "license": "https://www.apache.org/licenses/LICENSE-2.0",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+
+  <header class="mast">
+    <a class="name" href="./"><img src="media/logo.png" alt="" width="26" height="23">TermFold</a>
+    <nav aria-label="Main">
+      <a href="#install">Install</a>
+      <a href="how-it-works/">How it works</a>
+      <a href="https://github.com/Bibarud/TermFold">GitHub</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="open">
+      <h1>A Linux terminal and coding agents on your Android tablet</h1>
+      <p class="lead">TermFold is an Android app that runs a real Debian system. You can use git, Node, Python and tools like Claude Code and Codex on a tablet, without a laptop and without root.</p>
+      <p class="get">
+        <a class="button" id="dl" href="https://github.com/Bibarud/TermFold/releases/latest">Download the APK</a>
+        <span class="small" id="dl-meta">Android 8 or newer</span>
+      </p>
+      <p class="small">Free, Apache-2.0. Also on <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/Bibarud/TermFold">Obtainium</a>, and it can update itself.</p>
+    </div>
+
+    <figure class="hero-shot">
+      <img src="screenshots/chat.png" alt="TermFold on a tablet showing Codex answering in the chat view" width="2944" height="1744" fetchpriority="high">
+      <figcaption>Codex answering in the chat view. The same screen works with Claude, OpenCode, Cursor and Pi.</figcaption>
+    </figure>
+
+    <section class="row" id="what">
+      <h2>what it is</h2>
+      <div class="body">
+        <p>I wanted to code on a tablet with a keyboard. On Android that usually means a terminal app, a pile of proot scripts, and package installs that break halfway through. TermFold bundles Debian 13 and does that setup once, so <code>apt</code>, <code>git</code>, Node 22, Python and gcc work after the first launch.</p>
+        <p>Your projects live inside that Linux system, so symlinks, permissions and npm behave the way they do on a PC. Agents install themselves the first time you type their name: <code>claude</code>, <code>codex</code>, <code>gemini</code>, <code>opencode</code>, <code>pi</code> or <code>qwen</code>. Several of them also get a proper chat screen instead of a terminal, through the <a href="https://agentclientprotocol.com">Agent Client Protocol</a>.</p>
+      </div>
+    </section>
+
+    <section class="row" id="inside">
+      <h2>also in the box</h2>
+      <div class="body">
+        <ul>
+          <li>A file manager and a code editor. You can send files into a project from any app, and export them out again.</li>
+          <li>A browser next to the chat. Agents can open a page, click, fill in forms and take screenshots to check their own work. The snapshots they get are kept short on purpose, so they do not burn tokens.</li>
+          <li>A key row for Ctrl, Esc and the arrows, and a floating bubble that keeps your session one tap away while you are in another app.</li>
+          <li>Updates from Settings: it checks GitHub, verifies the checksum and signature, then hands the APK to Android's installer.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="row wide" id="screens">
+      <h2>screenshots</h2>
+      <div class="body">
+        <div class="shots">
+          <figure><img src="screenshots/terminal.png" alt="The terminal with the key row" loading="lazy"><figcaption>The terminal and its key row.</figcaption></figure>
+          <figure><img src="screenshots/sessions.png" alt="Several sessions in one project" loading="lazy"><figcaption>Several sessions in one project.</figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="row" id="install">
+      <h2>install</h2>
+      <div class="body">
+        <ol>
+          <li>Download the APK from the <a id="dl2" href="https://github.com/Bibarud/TermFold/releases/latest">releases page</a> and open it. Android asks once to allow installs from your browser.</li>
+          <li>Or add <code>github.com/Bibarud/TermFold</code> to <a href="https://github.com/ImranR98/Obtainium">Obtainium</a> and it keeps the app up to date.</li>
+          <li>Open TermFold. The first start unpacks Debian, which takes a few seconds. The first shell then downloads the developer tools, a few hundred MB, so you need internet once.</li>
+        </ol>
+        <p>You need Android 8 or newer, a 64-bit ARM or x86_64 device, and a few GB free.</p>
+      </div>
+    </section>
+
+    <section class="row" id="limits">
+      <h2>what doesn't work</h2>
+      <div class="body">
+        <ul>
+          <li>It is not on Google Play. The app updates itself and downloads developer tools, which Play's policies restrict, and it still targets Android 9, which Play no longer accepts. Newer targets look workable; <a href="https://github.com/Bibarud/TermFold/blob/main/docs/ANDROID-COMPATIBILITY.md">the notes are here</a>.</li>
+          <li>It is not on F-Droid yet. F-Droid wants every binary built from source, and the PRoot binaries come from Termux's packages. <a href="https://github.com/Bibarud/TermFold/issues/7">There is an issue</a> if you want to help.</li>
+          <li>It is PRoot, not a virtual machine: no systemd, no kernel modules, no raw sockets.</li>
+          <li>Google's Antigravity chat server needs more address space than Android gives apps, so only its command line works.</li>
+          <li>You bring your own account or API key for each agent.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="row" id="how">
+      <h2>how it works</h2>
+      <div class="body">
+        <p>Getting Linux to run inside an app took five workarounds, for things like Android refusing to execute files from app storage and blocking hard links. I wrote them up in <a href="how-it-works/">How TermFold runs Debian on Android without root</a>. The source is on <a href="https://github.com/Bibarud/TermFold">GitHub</a>.</p>
+      </div>
+    </section>
+
+    <section class="row" id="faq">
+      <h2>questions</h2>
+      <div class="body">
+        <dl>
+          <dt>Do I need root?</dt>
+          <dd>No. It is an ordinary app. Nothing on your device is modified.</dd>
+          <dt>Does it work on a phone?</dt>
+          <dd>Yes, the layout adapts, but it is built for a tablet with a keyboard, where the chat, files and terminal can sit side by side.</dd>
+          <dt>How is it different from Termux?</dt>
+          <dd>Termux is a general terminal and does much more. TermFold does one thing: coding with agents on a tablet. It brings its own Debian, a chat view for agents, a file manager, an editor and a browser, with the setup done for you.</dd>
+          <dt>Is an APK from GitHub safe to install?</dt>
+          <dd>Each release lists a SHA-256 checksum and the source is public. The in-app updater checks both the checksum and the signing key before it passes a file to Android.</dd>
+        </dl>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>TermFold is made by one person, <a href="https://github.com/Bibarud">Bibarud</a>. The best way to reach me is a <a href="https://github.com/Bibarud/TermFold/issues">GitHub issue</a> or a <a href="https://github.com/Bibarud/TermFold/discussions">discussion</a>.</p>
+    <p>Apache-2.0. Debian is a trademark of Software in the Public Interest, Inc. TermFold is not affiliated with Debian.</p>
+  </footer>
+</div>
+
+<script>
+  // Point the download links at the newest APK and show its version and size. Without script,
+  // or if GitHub does not answer, they still go to the releases page.
+  (function () {
+    fetch("https://api.github.com/repos/Bibarud/TermFold/releases/latest", { headers: { Accept: "application/vnd.github+json" } })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+      .then(function (rel) {
+        var apk = (rel.assets || []).filter(function (a) { return /\.apk$/i.test(a.name); })[0];
+        if (!apk) return;
+        ["dl", "dl2"].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) el.href = apk.browser_download_url;
+        });
+        var meta = document.getElementById("dl-meta");
+        if (meta) meta.textContent = rel.tag_name + ", " + Math.round(apk.size / 1048576) + " MB. Android 8 or newer.";
+      })
+      .catch(function () {});
+  })();
+</script>
+</body>
+</html>

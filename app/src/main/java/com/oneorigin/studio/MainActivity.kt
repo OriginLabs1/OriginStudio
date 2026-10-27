@@ -1,0 +1,1010 @@
+package com.oneorigin.studio
+
+import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.zIndex
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.layout
+import com.oneorigin.studio.ui.screens.PreviewPane
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.UriHandler
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.oneorigin.studio.core.AppViewModel
+import com.oneorigin.studio.core.SessionPreset
+import com.oneorigin.studio.core.ShellState
+import com.oneorigin.studio.shell.TerminalHost
+import com.oneorigin.studio.ui.components.BottomNav
+import com.oneorigin.studio.ui.components.NavRail
+import com.oneorigin.studio.ui.components.currentWindowWidth
+import com.oneorigin.studio.ui.components.isWide
+import com.oneorigin.studio.ui.components.AppSurface
+import com.oneorigin.studio.ui.components.NavTab
+import com.oneorigin.studio.ui.screens.AgentSessionScreen
+import com.oneorigin.studio.ui.screens.ConfirmDialog
+import com.oneorigin.studio.ui.screens.FileManagerScreen
+import com.oneorigin.studio.ui.screens.FilesWorkspace
+import com.oneorigin.studio.ui.screens.FolderDetailScreen
+import com.oneorigin.studio.ui.screens.FoldersScreen
+import com.oneorigin.studio.ui.screens.OptionsSheet
+import com.oneorigin.studio.ui.screens.PresetChips
+import com.oneorigin.studio.ui.screens.ProvisioningScreen
+import com.oneorigin.studio.ui.screens.SearchField
+import com.oneorigin.studio.ui.screens.SettingsScreen
+import com.oneorigin.studio.ui.screens.TerminalScreen
+import com.oneorigin.studio.ui.screens.TextPromptDialog
+import com.oneorigin.studio.ui.theme.Palette
+import com.oneorigin.studio.ui.theme.Origin StudioTheme
+import com.oneorigin.studio.ui.theme.Motion
+
+class MainActivity : Origin StudioActivity() {
+
+    private val viewModel: AppViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+        // Creating the channels while on screen is what makes Android 13+ ask for the
+        // notification permission.
+        com.oneorigin.studio.notify.Notifier.ensureChannels(this)
+        com.oneorigin.studio.notify.Notifier.placeFrom(intent)?.let(com.oneorigin.studio.notify.AppPresence::request)
+
+        setContent {
+            Origin StudioTheme {
+                Origin StudioRoot(viewModel)
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        com.oneorigin.studio.notify.Notifier.placeFrom(intent)?.let(com.oneorigin.studio.notify.AppPresence::request)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Back in the full app: the bubble would only be a second copy of it.
+        com.oneorigin.studio.notify.Notifier.cancelBubble(this)
+    }
+
+    /**
+     * The user is leaving for another app (Home, Recents, a gesture), not opening one of ours
+     * like the photo picker. If they were working in a folder or a session, the app floats on as
+     * a bubble that opens right there.
+     */
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        val place = com.oneorigin.studio.notify.AppPresence.place ?: return
+        com.oneorigin.studio.notify.Notifier.showBubble(this, place, com.oneorigin.studio.notify.AppPresence.label)
+    }
+}
+
+/**
+ * What every Origin Studio window shares: the physical-keyboard handling. The main window and the
+ * bubble both extend it.
+ */
+open class Origin StudioActivity : ComponentActivity() {
+
+    /**
+     * The first key typed on a physical keyboard puts the on-screen one away: it is covering the
+     * terminal and nobody is using it. It comes back as soon as the user taps a text field or the
+     * terminal, which is them choosing touch again (see [PhysicalKeyboard]).
+     */
+    override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        val wasInUse = com.oneorigin.studio.ui.components.PhysicalKeyboard.inUse
+        if (event.action == android.view.KeyEvent.ACTION_DOWN &&
+            com.oneorigin.studio.ui.components.PhysicalKeyboard.onKeyEvent(event) && !wasInUse
+        ) {
+            val imm = getSystemService(INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
+            imm?.hideSoftInputFromWindow(window.decorView.windowToken, 0)
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
+    override fun dispatchTouchEvent(event: android.view.MotionEvent): Boolean {
+        com.oneorigin.studio.ui.components.PhysicalKeyboard.onTouch(event)
+        return super.dispatchTouchEvent(event)
+    }
+}
+
+
+/** Destinations. Plain state is enough for a graph this shallow. */
+private sealed interface Destination {    data object Tabs : Destination
+    data class Folder(val folderId: String) : Destination
+    data class Terminal(val folderId: String, val sessionId: String) : Destination
+}
+
+/** How deep a destination sits, used to give the transitions a consistent direction. */
+private fun Destination.depth(): Int = when (this) {
+    Destination.Tabs -> 0
+    is Destination.Folder -> 1
+    is Destination.Terminal -> 2
+}
+
+/**
+ * The shared screen transition: a short directional slide with a fade. Moving deeper into the app
+ * enters from the right; coming back out reverses it, so navigation reads as spatial movement.
+ * [rankOf] maps each value to its position in that navigation depth, e.g. tabs before folder
+ * before terminal.
+ */
+private fun <T> directionalTransition(rankOf: (T) -> Int): AnimatedContentTransitionScope<T>.() -> ContentTransform = {
+    val forward = rankOf(targetState) > rankOf(initialState)
+    val enter = slideInHorizontally(Motion.slow()) { full ->
+        if (forward) full / 4 else -full / 4
+    } + fadeIn(Motion.standard())
+    val exit = slideOutHorizontally(Motion.slow()) { full ->
+        if (forward) -full / 4 else full / 4
+    } + fadeOut(Motion.quick())
+    enter togetherWith exit
+}
+
+/** What an options sheet or confirmation is acting on. */
+private sealed interface OptionsTarget {
+    val folderId: String
+
+    data class Folder(override val folderId: String) : OptionsTarget
+    data class Session(override val folderId: String, val sessionId: String) : OptionsTarget
+}
+
+@Composable
+internal fun Origin StudioRoot(viewModel: AppViewModel) {
+    val data by viewModel.folders.collectAsStateWithLifecycle()
+    val shell by viewModel.shell.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    var destination by remember { mutableStateOf<Destination>(Destination.Tabs) }
+
+    // A notification or the bubble asked to show a folder or session.
+    val request by com.oneorigin.studio.notify.AppPresence.requests.collectAsStateWithLifecycle()
+    LaunchedEffect(request, data) {
+        val place = request ?: return@LaunchedEffect
+        val folder = data.folder(place.folderId) ?: return@LaunchedEffect
+        destination = if (place.sessionId != null && folder.sessions.any { it.id == place.sessionId }) {
+            Destination.Terminal(folder.id, place.sessionId)
+        } else {
+            Destination.Folder(folder.id)
+        }
+        com.oneorigin.studio.notify.AppPresence.consume(place)
+    }
+    // Tell the rest of the app where the user is, for notifications and the bubble.
+    LaunchedEffect(destination, data) {
+        val presence = com.oneorigin.studio.notify.AppPresence
+        when (val d = destination) {
+            is Destination.Folder -> {
+                presence.place = com.oneorigin.studio.notify.AppPresence.Place(d.folderId)
+                presence.label = data.folder(d.folderId)?.name.orEmpty()
+            }
+            is Destination.Terminal -> {
+                presence.place = com.oneorigin.studio.notify.AppPresence.Place(d.folderId, d.sessionId)
+                val folder = data.folder(d.folderId)
+                val session = folder?.sessions?.firstOrNull { it.id == d.sessionId }
+                presence.label = listOfNotNull(session?.name, folder?.name).joinToString(" \u00B7 ")
+                com.oneorigin.studio.notify.Notifier.cancelFor(context, "${d.folderId}/${d.sessionId}")
+            }
+            else -> presence.place = null
+        }
+    }
+    var filesOpen by rememberSaveable { mutableStateOf(false) }
+    val preview by com.oneorigin.studio.preview.Preview.state.collectAsStateWithLifecycle()
+    // On a tablet the preview sits beside the work; this is its share of the width.
+    var previewFraction by rememberSaveable { mutableFloatStateOf(0.5f) }
+    var previewMax by rememberSaveable { mutableStateOf(false) }
+    var tab by remember { mutableStateOf(NavTab.FOLDERS) }
+    var newProject by remember { mutableStateOf(false) }
+    val job by viewModel.job.collectAsStateWithLifecycle()
+    var searchOpen by remember { mutableStateOf(false) }
+    var query by remember { mutableStateOf("") }
+
+    var optionsFor by remember { mutableStateOf<OptionsTarget?>(null) }
+    var renameFolderId by remember { mutableStateOf<String?>(null) }
+    var confirmDelete by remember { mutableStateOf<OptionsTarget?>(null) }
+    var addSessionFor by remember { mutableStateOf<String?>(null) }
+
+    val pickFolder = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree(),
+        onResult = { uri: Uri? ->
+            if (uri != null) viewModel.importProject(uri)
+            searchOpen = false
+        },
+    )
+
+    // The bundled Linux environment is unpacked once, lazily, the first time the app runs. It
+    // costs a few seconds and is then never repeated.
+    LaunchedEffect(Unit) { viewModel.ensureShellReady() }
+
+    // A new release is looked for in the background (at most twice a day); Settings shows a dot.
+    LaunchedEffect(Unit) { com.oneorigin.studio.update.UpdateManager.checkIfDue(context) }
+
+    // Projects are folders in ~/projects; the list follows that folder (a project made with
+    // mkdir in a shell appears, a deleted one goes), checked on start and on every return.
+    LaunchedEffect(shell.state) {
+        viewModel.syncProjects()
+        // Agents in the Linux environment can use the preview browser from now on.
+        if (shell.state == ShellState.READY) com.oneorigin.studio.preview.BrowserBridge.start(context)
+    }
+    val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycle) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) viewModel.syncProjects()
+        }
+        lifecycle.lifecycle.addObserver(observer)
+        onDispose { lifecycle.lifecycle.removeObserver(observer) }
+    }
+
+
+    when (shell.state) {
+        ShellState.UNKNOWN, ShellState.PREPARING -> {
+            AppSurface {
+                ProvisioningScreen(
+                    step = shell.step,
+                    progress = shell.fraction,
+                    error = null,
+                    onRetry = { viewModel.retryShell() },
+                )
+            }
+            return
+        }
+
+        ShellState.FAILED -> {
+            AppSurface {
+                ProvisioningScreen(
+                    step = shell.step,
+                    progress = shell.fraction,
+                    error = shell.error,
+                    onRetry = { viewModel.retryShell() },
+                )
+            }
+            return
+        }
+
+        ShellState.MIGRATE_OFFER -> {
+            AppSurface {
+                com.oneorigin.studio.ui.screens.MigrationOfferScreen(
+                    onMigrate = { viewModel.startMigration() },
+                    onLater = { viewModel.postponeMigration() },
+                )
+            }
+            return
+        }
+
+        ShellState.MIGRATING -> {
+            AppSurface {
+                ProvisioningScreen(
+                    step = shell.step,
+                    progress = shell.fraction,
+                    error = null,
+                    onRetry = { viewModel.retryShell() },
+                    title = stringResource(R.string.migrate_working_title),
+                    body = stringResource(R.string.migrate_working_body),
+                )
+            }
+            return
+        }
+
+        ShellState.READY, ShellState.UNSUPPORTED -> Unit
+    }
+
+    val windowWidth = currentWindowWidth()
+    // Animations are slightly slower on a tablet, where surfaces are bigger and travel further.
+    androidx.compose.runtime.SideEffect { Motion.configure(windowWidth.isWide) }
+
+    // Phone and tablet share one tree; only the navigation container and the folder presentation
+    // differ, so there is no second layout to keep in sync.
+    // Web links in chats open in the preview (which can hand them on to a browser); mail and
+    // other links go to the system as before.
+    val systemUriHandler = LocalUriHandler.current
+    val uriHandler = remember(systemUriHandler) {
+        object : UriHandler {
+            override fun openUri(uri: String) {
+                if (uri.startsWith("http://", ignoreCase = true) || uri.startsWith("https://", ignoreCase = true)) {
+                    com.oneorigin.studio.preview.Preview.open(uri)
+                } else {
+                    runCatching { systemUriHandler.openUri(uri) }
+                }
+            }
+        }
+    }
+    CompositionLocalProvider(LocalUriHandler provides uriHandler) {
+    AppSurface {
+        // Opaque and hit-testable, so a minimized browser parked underneath stays hidden and
+        // never receives a touch meant for the app.
+        Row(modifier = Modifier.fillMaxSize().background(Palette.Bg).pointerInput(Unit) {}) {
+            if (windowWidth.isWide) {
+                // The rail is visible over every destination, so picking a tab must also leave
+                // whatever folder or terminal screen is open — setting the tab alone would change
+                // nothing, because the destination branch is what the content area displays.
+                NavRail(
+                    selected = tab,
+                    onSelect = { selected ->
+                        tab = selected
+                        if (selected != NavTab.FOLDERS) searchOpen = false
+                        destination = Destination.Tabs
+                    },
+                )
+            }
+            // The folder being worked in, if any: its files can be shown beside the folder view,
+            // a chat or a shell (not on the home screen).
+            val workspaceFolder = when (val d = destination) {
+                is Destination.Folder -> data.folder(d.folderId)
+                is Destination.Terminal -> data.folder(d.folderId)
+                else -> null
+            }
+            // A phone's drawer closes when the screen changes; a tablet keeps the tree docked.
+            LaunchedEffect(destination, windowWidth.isWide) {
+                if (!windowWidth.isWide) filesOpen = false
+            }
+            // Opaque and hit-testable too: a minimized side browser is parked beneath this.
+            Box(modifier = Modifier.weight(1f).background(Palette.Bg).pointerInput(Unit) {}) {
+              FilesWorkspace(
+                folder = workspaceFolder,
+                filesOpen = filesOpen,
+                onCloseFiles = { filesOpen = false },
+                wide = windowWidth.isWide,
+              ) {
+                AnimatedContent(
+                    targetState = destination,
+                    transitionSpec = directionalTransition { it.depth() },
+                    label = "destination",
+                ) { dest ->
+                when (val current = dest) {
+                    Destination.Tabs -> Column(modifier = Modifier.fillMaxSize()) {
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .windowInsetsPadding(
+                                    WindowInsets.safeDrawing.only(
+                                        WindowInsetsSides.Top + WindowInsetsSides.End
+                                    )
+                                ),
+                        ) {
+                            AnimatedContent(
+                                targetState = tab,
+                                transitionSpec = directionalTransition { it.ordinal },
+                                label = "tab",
+                            ) { currentTab ->
+                            when (currentTab) {
+                                NavTab.FOLDERS -> FoldersScreen(
+                                    folders = data.folders,
+                                    query = query,
+                                    onQueryChange = { query = it },
+                                    onOpenFolder = { destination = Destination.Folder(it) },
+                                    onAddFolder = { newProject = true },
+                                    onSearchToggle = {
+                                        searchOpen = !searchOpen
+                                        if (!searchOpen) query = ""
+                                    },
+                                    searchOpen = searchOpen,
+                                    onMore = { tab = NavTab.SETTINGS },
+                                    useGrid = windowWidth.isWide,
+                                )
+
+                                NavTab.FILES -> FileManagerScreen(wide = windowWidth.isWide)
+
+                                NavTab.SETTINGS -> SettingsScreen(
+                                    shellState = shell.state,
+                                    folderCount = data.folders.size,
+                                    sessionCount = data.folders.sumOf { it.sessions.size },
+                                    onRepairShell = { viewModel.retryShell() },
+                                    onMigrateShell = { viewModel.offerMigration() },
+                                    wide = windowWidth.isWide,
+                                )
+                            }
+                            }
+                        }
+
+                        if (!windowWidth.isWide) {
+                            BottomNav(
+                                selected = tab,
+                                onSelect = { selected ->
+                                    tab = selected
+                                    if (selected != NavTab.FOLDERS) searchOpen = false
+                                },
+                            )
+                        }
+                    }
+
+                is Destination.Folder -> {
+                    val folder = data.folder(current.folderId)
+                    if (folder == null) {
+                        LaunchedEffect(current.folderId) { destination = Destination.Tabs }
+                    } else {
+                        BackHandler { destination = Destination.Tabs }
+                        FolderDetailScreen(
+                            folder = folder,
+                            wide = windowWidth.isWide,
+                            modifier = Modifier.windowInsetsPadding(
+                                WindowInsets.safeDrawing.only(
+                                    WindowInsetsSides.Top + WindowInsetsSides.End
+                                )
+                            ),
+                            onBack = { destination = Destination.Tabs },
+                            filesOpen = filesOpen,
+                            onToggleFiles = { filesOpen = !filesOpen },
+                            onOpenSession = { sessionId ->
+                                destination = Destination.Terminal(folder.id, sessionId)
+                            },
+                            onAddSession = { addSessionFor = folder.id },
+                            onRenameFolder = { renameFolderId = folder.id },
+                            onOpenOptions = { sessionId ->
+                                optionsFor = if (sessionId == null) {
+                                    OptionsTarget.Folder(folder.id)
+                                } else {
+                                    OptionsTarget.Session(folder.id, sessionId)
+                                }
+                            },
+                        )
+                    }
+                }
+
+                is Destination.Terminal -> {
+                    val folder = data.folder(current.folderId)
+                    val session = folder?.sessions?.firstOrNull { it.id == current.sessionId }
+                    if (folder == null || session == null) {
+                        LaunchedEffect(current.folderId, current.sessionId) {
+                            destination = Destination.Tabs
+                        }
+                    } else if (session.acpAgentId.isNotBlank()) {
+                        BackHandler { destination = Destination.Folder(folder.id) }
+                        AgentSessionScreen(
+                            folder = folder,
+                            sessionId = session.id,
+                            agentId = session.acpAgentId,
+                            modifier = Modifier.windowInsetsPadding(
+                                WindowInsets.safeDrawing.only(
+                                    WindowInsetsSides.Top + WindowInsetsSides.End
+                                )
+                            ),
+                            onBack = { destination = Destination.Folder(folder.id) },
+                            filesOpen = filesOpen,
+                            onToggleFiles = { filesOpen = !filesOpen },
+                        )
+                    } else {
+                        BackHandler { destination = Destination.Folder(folder.id) }
+                        TerminalScreen(
+                            folder = folder,
+                            sessionId = session.id,
+                            sessionName = session.name,
+                            initialCommand = session.command,
+                            wide = windowWidth.isWide,
+                            modifier = Modifier.windowInsetsPadding(
+                                WindowInsets.safeDrawing.only(
+                                    WindowInsetsSides.Top + WindowInsetsSides.End
+                                )
+                            ),
+                            onBack = { destination = Destination.Folder(folder.id) },
+                            onRestart = { TerminalHost.restart(context) },
+                            filesOpen = filesOpen,
+                            onToggleFiles = { filesOpen = !filesOpen },
+                        )
+                    }
+                }
+                    }
+                }
+              }
+            }
+
+            // ---- The preview beside the work (tablet), with a handle to resize it.
+            androidx.compose.animation.AnimatedVisibility(
+                visible = windowWidth.isWide && preview.open && !previewMax,
+                // Not clipped: minimized, the pane has no width of its own and must still be drawn
+                // (beneath the work) for its page to keep rendering.
+                enter = androidx.compose.animation.expandHorizontally(animationSpec = Motion.slow(), expandFrom = Alignment.Start, clip = false) + androidx.compose.animation.fadeIn(Motion.standard()),
+                exit = androidx.compose.animation.shrinkHorizontally(animationSpec = Motion.standard(), shrinkTowards = Alignment.Start, clip = false) + androidx.compose.animation.fadeOut(Motion.quick()),
+                modifier = Modifier.zIndex(if (preview.minimized) -1f else 0f),
+            ) {
+                val total = LocalConfiguration.current.screenWidthDp.dp - 84.dp
+                val density = LocalDensity.current
+                Row(Modifier.fillMaxHeight().parked(preview.minimized, overlapStart = true)) {
+                    Box(
+                        Modifier
+                            .width(14.dp)
+                            .fillMaxHeight()
+                            .draggable(
+                                orientation = Orientation.Horizontal,
+                                state = rememberDraggableState { delta ->
+                                    val totalPx = with(density) { total.toPx() }
+                                    previewFraction = (previewFraction - delta / totalPx).coerceIn(0.3f, 0.72f)
+                                },
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Box(Modifier.width(1.dp).fillMaxHeight().background(Palette.BorderSoft))
+                        Box(Modifier.width(4.dp).height(36.dp).clip(RoundedCornerShape(2.dp)).background(Palette.Border))
+                    }
+                    PreviewPane(
+                        state = preview,
+                        wide = true,
+                        maximized = false,
+                        onToggleMaximize = { previewMax = true },
+                        onClose = { com.oneorigin.studio.preview.Preview.close() },
+                        onMinimize = { com.oneorigin.studio.preview.Preview.minimize() },
+                        parked = preview.minimized,
+                        modifier = Modifier
+                            .width(total * previewFraction)
+                            .fillMaxHeight()
+                            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.End + WindowInsetsSides.Bottom)),
+                    )
+                }
+            }
+        }
+
+        // ---- The preview over everything (phone, or full screen on a tablet).
+        androidx.compose.animation.AnimatedVisibility(
+            visible = preview.open && (!windowWidth.isWide || previewMax),
+            // A fade, not a slide: a moving layer can leave the WebView (a native view) drawn
+            // out of place on some phones.
+            enter = androidx.compose.animation.fadeIn(Motion.standard()),
+            exit = androidx.compose.animation.fadeOut(Motion.quick()),
+            modifier = Modifier.zIndex(if (preview.minimized) -1f else 1f),
+        ) {
+            BackHandler(enabled = !preview.minimized) { if (previewMax) previewMax = false else com.oneorigin.studio.preview.Preview.close() }
+            PreviewPane(
+                onMinimize = { com.oneorigin.studio.preview.Preview.minimize() },
+                parked = preview.minimized,
+                state = preview,
+                wide = windowWidth.isWide,
+                maximized = previewMax,
+                onToggleMaximize = if (windowWidth.isWide) ({ previewMax = false }) else null,
+                onClose = {
+                    previewMax = false
+                    com.oneorigin.studio.preview.Preview.close()
+                },
+                // Dark behind the status and navigation bars too, not just inside them.
+                modifier = Modifier.fillMaxSize().parked(preview.minimized).background(Palette.Bg).windowInsetsPadding(WindowInsets.safeDrawing),
+            )
+        }
+
+        // ---- The minimized browser: a pill that can be dragged anywhere.
+        androidx.compose.animation.AnimatedVisibility(
+            visible = preview.open && preview.minimized,
+            enter = androidx.compose.animation.scaleIn(Motion.standard(), initialScale = 0.8f) + androidx.compose.animation.fadeIn(Motion.standard()),
+            exit = androidx.compose.animation.scaleOut(Motion.quick(), targetScale = 0.8f) + androidx.compose.animation.fadeOut(Motion.quick()),
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            androidx.compose.foundation.layout.BoxWithConstraints(
+                Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),
+            ) {
+                val density = LocalDensity.current
+                val pillW = with(density) { 236.dp.toPx() }
+                val pillH = with(density) { 46.dp.toPx() }
+                val maxX = (constraints.maxWidth - pillW).coerceAtLeast(0f)
+                val maxY = (constraints.maxHeight - pillH).coerceAtLeast(0f)
+                // Starts bottom-right, clear of the bottom bar on a phone; stays where it is dropped.
+                var pillX by rememberSaveable { mutableFloatStateOf(-1f) }
+                var pillY by rememberSaveable { mutableFloatStateOf(-1f) }
+                if (pillX < 0f) pillX = maxX - with(density) { 16.dp.toPx() }
+                // Top right, just under the header so its buttons stay reachable.
+                if (pillY < 0f) pillY = with(density) { 60.dp.toPx() }.coerceAtMost(maxY)
+                com.oneorigin.studio.ui.screens.PreviewPill(
+                    Modifier
+                        .offset { androidx.compose.ui.unit.IntOffset(pillX.coerceIn(0f, maxX).toInt(), pillY.coerceIn(0f, maxY).toInt()) }
+                        .pointerInput(maxX, maxY) {
+                            detectDragGestures { change, drag ->
+                                change.consume()
+                                pillX = (pillX.coerceIn(0f, maxX) + drag.x).coerceIn(0f, maxX)
+                                pillY = (pillY.coerceIn(0f, maxY) + drag.y).coerceIn(0f, maxY)
+                            }
+                        },
+                )
+            }
+        }
+    }
+    }
+
+    if (newProject) {
+        com.oneorigin.studio.ui.screens.NewProjectDialog(
+            onCreateEmpty = { name ->
+                newProject = false
+                viewModel.createProject(name) { id -> destination = Destination.Folder(id) }
+            },
+            onClone = { url, name ->
+                newProject = false
+                viewModel.cloneProject(url, name)
+            },
+            onImport = {
+                newProject = false
+                pickFolder.launch(null)
+            },
+            onDismiss = { newProject = false },
+        )
+    }
+    job?.let { j ->
+        com.oneorigin.studio.ui.screens.ProjectJobDialog(
+            job = j,
+            onOpen = { id ->
+                viewModel.dismissJob()
+                destination = Destination.Folder(id)
+            },
+            onDismiss = { viewModel.dismissJob() },
+        )
+    }
+
+    OptionsLayer(
+        viewModel = viewModel,
+        optionsFor = optionsFor,
+        onDismissOptions = { optionsFor = null },
+        onRequestDelete = { confirmDelete = it },
+        renameFolderId = renameFolderId,
+        onDismissRename = { renameFolderId = null },
+        confirmDelete = confirmDelete,
+        onDismissDelete = { confirmDelete = null },
+        addSessionFor = addSessionFor,
+        onDismissAddSession = { addSessionFor = null },
+        folderNameFor = { id -> data.folder(id)?.name.orEmpty() },
+        sessionIdsFor = { id -> data.folder(id)?.sessions?.map { it.id }.orEmpty() },
+    )
+}
+
+@Composable
+private fun OptionsLayer(
+    viewModel: AppViewModel,
+    optionsFor: OptionsTarget?,
+    onDismissOptions: () -> Unit,
+    onRequestDelete: (OptionsTarget) -> Unit,
+    renameFolderId: String?,
+    onDismissRename: () -> Unit,
+    confirmDelete: OptionsTarget?,
+    onDismissDelete: () -> Unit,
+    addSessionFor: String?,
+    onDismissAddSession: () -> Unit,
+    folderNameFor: (String) -> String,
+    sessionIdsFor: (String) -> List<String>,
+) {
+    optionsFor?.let { target ->
+        val actions = listOf(
+            stringResource(R.string.action_remove) to { onRequestDelete(target) },
+        )
+
+        OptionsSheet(
+            title = folderNameFor(target.folderId),
+            actions = actions,
+            onDismiss = onDismissOptions,
+        )
+    }
+
+    renameFolderId?.let { folderId ->
+        var name by remember(folderId) { mutableStateOf(folderNameFor(folderId)) }
+        TextPromptDialog(
+            title = stringResource(R.string.cd_name),
+            value = name,
+            onValueChange = { name = it },
+            onConfirm = {
+                if (name.isNotBlank()) viewModel.renameFolder(folderId, name.trim())
+                onDismissRename()
+            },
+            onDismiss = onDismissRename,
+            confirmLabel = stringResource(R.string.action_add),
+        )
+    }
+
+    confirmDelete?.let { target ->
+        val isFolder = target is OptionsTarget.Folder
+        ConfirmDialog(
+            title = if (isFolder) stringResource(R.string.project_delete_title, folderNameFor(target.folderId)) else stringResource(R.string.action_remove),
+            body = if (isFolder) stringResource(R.string.project_delete_body) else folderNameFor(target.folderId),
+            confirmLabel = if (isFolder) stringResource(R.string.files_delete) else stringResource(R.string.action_remove),
+            onConfirm = {
+                if (isFolder) {
+                    // End the folder's running sessions before the definitions disappear,
+                    // otherwise their processes would idle on with no way to reach them.
+                    sessionIdsFor(target.folderId).forEach { sessionId ->
+                        val key = TerminalHost.sessionKey(target.folderId, sessionId)
+                        TerminalHost.closeSession(key)
+                        com.oneorigin.studio.acp.AcpSessions.close(key)
+                    }
+                    viewModel.removeFolder(target.folderId)
+                } else {
+                    val sessionId = (target as OptionsTarget.Session).sessionId
+                    val key = TerminalHost.sessionKey(target.folderId, sessionId)
+                    // Removing a session ends it: the terminal closes, the agent process dies,
+                    // and the process tree is released.
+                    TerminalHost.closeSession(key)
+                    com.oneorigin.studio.acp.AcpSessions.close(key)
+                    viewModel.removeSession(target.folderId, sessionId)
+                }
+            },
+            onDismiss = onDismissDelete,
+        )
+    }
+
+    addSessionFor?.let { folderId ->
+        NewSessionDialog(
+            onDismiss = onDismissAddSession,
+            onCreate = { name, command, acpAgentId ->
+                viewModel.addSession(folderId, name, command, acpAgentId)
+                onDismissAddSession()
+            },
+        )
+    }
+}
+
+/** Preset-driven session creation, with a free-text command for the custom case. */
+@Composable
+private fun NewSessionDialog(
+    onDismiss: () -> Unit,
+    onCreate: (name: String, command: String, acpAgentId: String) -> Unit,
+) {
+    val context = LocalContext.current
+    val presets = SessionPreset.entries
+    var selected by remember { mutableStateOf(0) }
+    var name by remember { mutableStateOf("") }
+    var command by remember { mutableStateOf("") }
+
+    // The trailing pseudo-preset switches the session into ACP mode: it runs a registry agent
+    // through the native agent interface instead of a shell.
+    val acpIndex = presets.size
+    var agents by remember { mutableStateOf<List<com.oneorigin.studio.acp.AcpAgent>>(emptyList()) }
+    var loadingAgents by remember { mutableStateOf(false) }
+    var selectedAgent by remember {
+        mutableStateOf<com.oneorigin.studio.acp.AcpAgent?>(null)
+    }
+
+    LaunchedEffect(selected) {
+        if (selected == acpIndex && agents.isEmpty() && !loadingAgents) {
+            loadingAgents = true
+            agents = com.oneorigin.studio.acp.AcpRegistry.agents(context)
+            loadingAgents = false
+        }
+    }
+
+    val preset = presets.getOrNull(selected)
+    val effectiveCommand = if (preset == SessionPreset.CUSTOM) command
+    else preset?.defaultCommand.orEmpty()
+    val isAcp = selected == acpIndex
+    val fallbackName = when {
+        isAcp -> selectedAgent?.name ?: "ACP"
+        preset != null -> stringResource(preset.labelRes)
+        else -> "ACP"
+    }
+    val canConfirm = isAcp && selectedAgent != null ||
+        preset == SessionPreset.SHELL ||
+        effectiveCommand.isNotBlank()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Palette.Card,
+        titleContentColor = Palette.Text,
+        title = {
+            Text(
+                text = stringResource(R.string.new_session_title),
+                style = MaterialTheme.typography.titleMedium,
+            )
+        },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                PresetChips(
+                    labels = presets.map { stringResource(it.labelRes) } + stringResource(R.string.acp_chip),
+                    selectedIndex = selected,
+                    onSelect = { selected = it },
+                )
+
+                Spacer(Modifier.height(16.dp))
+
+                if (isAcp) {
+                    Text(
+                        text = stringResource(R.string.acp_agent_label),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Palette.TextFaint,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    when {
+                        loadingAgents -> Text(
+                            text = stringResource(R.string.acp_registry_loading),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Palette.TextDim,
+                            modifier = Modifier.padding(vertical = 12.dp),
+                        )
+
+                        agents.isEmpty() -> Text(
+                            text = stringResource(R.string.acp_registry_offline),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Palette.Pink,
+                            modifier = Modifier.padding(vertical = 12.dp),
+                        )
+
+                        else -> Column(
+                            modifier = Modifier
+                                .heightIn(max = 220.dp)
+                                .verticalScroll(rememberScrollState()),
+                        ) {
+                            agents.forEach { entry ->
+                                val active = selectedAgent?.id == entry.id
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(if (active) Palette.CardPressed else Color.Transparent)
+                                        .clickable {
+                                            selectedAgent = entry
+                                            if (name.isBlank()) name = entry.name
+                                        }
+                                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    com.oneorigin.studio.ui.components.AgentIconImage(
+                                        iconUrl = entry.iconUrl,
+                                        name = entry.name,
+                                        size = 26.dp,
+                                    )
+                                    Spacer(Modifier.width(10.dp))
+                                    Column(Modifier.weight(1f)) {
+                                        Text(
+                                            text = entry.name,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Palette.Text,
+                                            maxLines = 1,
+                                        )
+                                        if (entry.description.isNotBlank()) {
+                                            Text(
+                                                text = entry.description,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = Palette.TextFaint,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = stringResource(R.string.acp_session_hint),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Palette.TextFaint,
+                    )
+                    Spacer(Modifier.height(14.dp))
+                }
+
+                if (preset == SessionPreset.CUSTOM && !isAcp) {
+                    LabelledField(
+                        label = stringResource(R.string.custom_command),
+                        value = command,
+                        onValueChange = { command = it },
+                        placeholder = "npm start",
+                    )
+                    Spacer(Modifier.height(14.dp))
+                }
+
+                LabelledField(
+                    label = stringResource(R.string.cd_name),
+                    value = name,
+                    onValueChange = { name = it },
+                    placeholder = fallbackName,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onCreate(
+                        name.ifBlank { fallbackName }.trim(),
+                        effectiveCommand.trim(),
+                        if (isAcp) selectedAgent?.id.orEmpty() else "",
+                    )
+                },
+                enabled = canConfirm,
+            ) {
+                Text(
+                    text = stringResource(R.string.action_add),
+                    color = if (canConfirm) Palette.Accent else Palette.TextFaint,
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = stringResource(R.string.action_cancel),
+                    color = Palette.TextDim,
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+        },
+    )
+}
+
+@Composable
+private fun LabelledField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = Palette.TextFaint,
+        )
+        Spacer(Modifier.height(6.dp))
+        SearchField(
+            query = value,
+            onQueryChange = onValueChange,
+            placeholder = placeholder,
+        )
+    }
+}
+
+/**
+ * Takes the content out of view without taking it out of the app: it keeps its full size and
+ * keeps running (a minimized browser keeps drawing its page for an agent) but occupies no space.
+ * It stays on the screen, under the app (the caller lowers its z-index; the app above is
+ * opaque and hit-testable), because a WebView moved off the screen stops drawing and its
+ * screenshots come out black. [overlapStart] lays it over the space to its left, for a pane at
+ * the end of a row.
+ */
+private fun Modifier.parked(parked: Boolean, overlapStart: Boolean = false): Modifier = this.layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints)
+    if (!parked) {
+        layout(placeable.width, placeable.height) { placeable.place(0, 0) }
+    } else {
+        layout(0, 0) { placeable.place(if (overlapStart) -placeable.width else 0, 0) }
+    }
+}

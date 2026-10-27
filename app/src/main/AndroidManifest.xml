@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Needed so the bundled Debian environment can reach apt, pip, npm and the agents. Projects
+         live in the app's own storage; files from elsewhere come in through the system pickers,
+         which need no storage permission. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Lets the Settings update card hand a downloaded TermFold APK to the system installer. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <!-- "Agent finished" alerts, the bubble, and the ongoing notification that keeps sessions
+         running while the user is in other apps. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Lets the user exempt TermFold from battery optimisation from inside the app (the
+         system asks them to confirm), so long agent runs are not cut off by the OEM's
+         background killer. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <application
+        android:name=".OriginStudioApp"
+        android:allowBackup="false"
+        android:networkSecurityConfig="@xml/network_security"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:enableOnBackInvokedCallback="true"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.TermFold">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"            android:configChanges="orientation|screenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode|density|fontScale"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.TermFold">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- The whole app in a bubble. Android requires a bubble's activity to be resizeable,
+             embeddable, and to open as its own document. -->
+        <activity
+            android:name=".BubbleActivity"
+            android:exported="false"
+            android:allowEmbedded="true"
+            android:resizeableActivity="true"
+            android:documentLaunchMode="always"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode|density|fontScale"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.TermFold" />
+
+        <!-- "Share → TermFold" from any app: any file type, several at once, or text and links. -->
+        <activity
+            android:name=".ShareReceiverActivity"
+            android:exported="true"
+            android:label="@string/share_title"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.TermFold.Translucent">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+        </activity>
+
+        <!-- The Linux home folder as a location in Android's file picker (no storage permission:
+             only the system picker, driven by the user, can reach it). -->
+        <provider
+            android:name=".files.OriginDocumentsProvider"
+            android:authorities="${applicationId}.documents"
+            android:exported="true"
+            android:grantUriPermissions="true"
+            android:permission="android.permission.MANAGE_DOCUMENTS">
+            <intent-filter>
+                <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+            </intent-filter>
+        </provider>
+
+        <!-- Hands a single file to another app (share, open with) with a temporary read grant. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <service
+            android:name=".notify.KeepAliveService"
+            android:exported="false" />
+
+        <receiver
+            android:name=".notify.StopSessionsReceiver"
+            android:exported="false" />
+
+    </application>
+
+</manifest>

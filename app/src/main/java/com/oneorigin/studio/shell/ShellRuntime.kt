@@ -1,0 +1,336 @@
+package com.oneorigin.studio.shell
+
+import android.content.Context
+import android.content.res.AssetManager
+import android.net.ConnectivityManager
+import android.util.Log
+import java.io.File
+/**
+ * Owns the bundled Linux environment: unpacking the Debian root filesystem and writing the few
+ * files the guest cannot work out for itself.
+ *
+ * Everything here happens once. After the first successful run the rootfs lives in the app's
+ * private storage and survives restarts and app updates, so anything installed inside it with apt
+ * stays installed.
+ */
+object ShellRuntime {
+
+    private const val TAG = "ShellRuntime"
+
+    /**
+     * Written into the rootfs once it is unpacked. Bumped when the bundled image changes, so a
+     * future release can tell it must re-unpack. Anything that does not start with
+     * [DEBIAN_MARKER_PREFIX] is an older Ubuntu image, which [DistroMigration] moves to Debian.
+     */
+    private const val MARKER = "debian-13"
+    internal const val DEBIAN_MARKER_PREFIX = "debian"
+
+    /**
+     * The `ca-certificates` package this app unpacks into the guest.
+     *
+     * The Debian base image ships the archive keyring but no CA bundle, so every https:// request
+     * from inside the guest fails with "No system certificates available". Installing the package
+     * through apt is not an option for the first run, because that is the very thing that needs
+     * working TLS.
+     *
+     * So the bundle is placed directly: it is a set of PEM files plus the hash-named symlinks
+     * `openssl` looks up, and the keyring is left exactly as the image shipped it.
+     */
+    private const val CA_BUNDLE = "ca-certificates.crt"
+
+    /** Thrown when the host CPU has no matching Linux image. */
+    class UnsupportedCpu(abi: String) :
+        IllegalStateException("No bundled Linux image for CPU architecture \"$abi\".")
+
+    /**
+     * Makes the environment ready to run, doing the expensive work at most once.
+     *
+     * [onProgress] is called from the calling thread with a short step name and a 0..1 fraction.
+     */
+    @Synchronized
+    fun provision(context: Context, onProgress: (String, Float) -> Unit = { _, _ -> }) {
+        // The architecture of the running process, which is the one the rootfs must match.
+        val abi = android.os.Build.SUPPORTED_ABIS.firstOrNull().orEmpty()
+        val supported = ShellConfig.rootfsAbi(abi) ?: throw UnsupportedCpu(abi)
+
+        // A migration that was cut off (the app was killed half way) is finished before anything
+        // else looks at the rootfs, because until then there may be no rootfs at all.
+        DistroMigration.resumeInterrupted(context, supported, onProgress)
+
+        if (isReady(context)) {
+            // Cheap and idempotent, so existing installs pick up defaults added after they were
+            // provisioned.
+            val rootfs = ShellPaths.rootfsDir(context)
+            GuestCompat.install(context, rootfs, supported)
+            ShellSetup.install(context, rootfs)
+            writeHostFiles(context)
+            // Once per install: existing fake hard links become real files. Slow (it walks the
+            // whole guest) but this runs in the background refresh.
+            GuestCompat.migrateFakeLinks(rootfs)
+            GuestCompat.removeStaleMountPoints(rootfs)
+            return
+        }
+
+        onProgress("Writing network config", 0.05f)
+        writeHostFiles(context)
+
+        val rootfs = ShellPaths.rootfsDir(context)
+        if (!File(rootfs, "usr/bin/bash").isFile) {
+            onProgress("Unpacking Debian", 0.10f)
+            extractRootfs(context, supported, rootfs) { onProgress("Unpacking Debian", 0.10f + 0.85f * it) }
+        }
+
+        onProgress("Finishing", 0.96f)
+        finishImage(context, rootfs, supported)
+
+        onProgress("Ready", 1f)
+        Log.i(TAG, "Linux ready at ${rootfs.absolutePath}")
+    }
+
+    fun isReady(context: Context): Boolean = ShellPaths.isReady(context)
+
+    /**
+     * True for an environment made by an earlier version of the app, which unpacked Ubuntu. Such
+     * an install keeps working as it is, and [DistroMigration] can move it to Debian.
+     */
+    fun isLegacyUbuntu(context: Context): Boolean {
+        if (!isReady(context)) return false
+        val marker = runCatching { ShellPaths.rootfsMarker(context).readText().trim() }.getOrDefault("")
+        return !marker.startsWith(DEBIAN_MARKER_PREFIX)
+    }
+
+    /**
+     * Everything a freshly unpacked image needs before it can be used: the directories and CA
+     * bundle it lacks, the host's group IDs, the compatibility library and Origin Studio's own setup
+     * files. Shared by first-run provisioning and by the migration from Ubuntu.
+     */
+    internal fun finishImage(context: Context, rootfs: File, abi: String) {
+        postInstall(context, rootfs)
+        fixGroupDatabase(rootfs)
+        GuestCompat.install(context, rootfs, abi)
+        ShellSetup.install(context, rootfs)
+        // A fresh image has no fake links; this just records that.
+        GuestCompat.migrateFakeLinks(rootfs)
+        // Last, so an image that is cut off half way is finished again rather than trusted.
+        File(rootfs, ".termfold-rootfs").writeText(MARKER)
+    }
+
+    /**
+     * Unpacks the Debian image into the app's private storage, at [rootfs].
+     *
+     * The extraction is deliberately done in-process ([TarExtractor]) rather than by shelling out
+     * to the bundled busybox tar. Android's seccomp policy makes the raw `fork` syscall fail with
+     * `ENOSYS` for app processes — apps are expected to use `clone` — and BusyBox's tar forks.
+     * A JVM implementation has no such problem, and it also means the rootfs is in place before
+     * any bundled executable has to prove it runs.
+     *
+     * [onProgress] gets the fraction of the image read so far.
+     */
+    internal fun extractRootfs(context: Context, abi: String, rootfs: File, onProgress: (Float) -> Unit = {}) {
+        // A scratch tree beside the final rootfs, so publishing it afterwards is a rename rather
+        // than a copy of the whole tree.
+        val staging = ShellPaths.stagingDir(context)
+        DistroMigration.deleteTree(staging)
+        if (!staging.mkdirs()) {
+            error("Cannot create ${staging.absolutePath} to unpack Linux into.")
+        }
+
+        try {
+            unpackImage(context, abi, staging, onProgress)
+        } catch (error: Throwable) {
+            DistroMigration.deleteTree(staging)
+            throw error
+        }
+
+        if (!File(staging, "usr/bin/bash").isFile) {
+            DistroMigration.deleteTree(staging)
+            error("Unpacked image has no /usr/bin/bash, so the archive is not a usable rootfs.")
+        }
+
+        DistroMigration.deleteTree(rootfs)
+        if (!staging.renameTo(rootfs)) {
+            error("Could not move the unpacked rootfs into ${rootfs.absolutePath}")
+        }
+        Log.i(TAG, "Unpacked ${ShellConfig.rootfsAsset(abi)} into ${rootfs.absolutePath}")
+    }
+
+    /** Streams the bundled image into [destination], reporting how much of it has been read. */
+    internal fun unpackImage(context: Context, abi: String, destination: File, onProgress: (Float) -> Unit = {}) {
+        val name = ShellConfig.rootfsAsset(abi)
+        val total = runCatching { context.assets.openFd(name).use { it.length } }.getOrDefault(-1L)
+        // ACCESS_STREAMING keeps the 30 MB image out of memory and streams it as it is read.
+        context.assets.open(name, AssetManager.ACCESS_STREAMING).use { raw ->
+            val counted = object : java.io.FilterInputStream(raw) {
+                private var seen = 0L
+                private var lastStep = -1
+
+                private fun count(n: Int): Int {
+                    if (n > 0 && total > 0) {
+                        seen += n
+                        val step = (seen * 100 / total).toInt()
+                        if (step != lastStep) {
+                            lastStep = step
+                            onProgress((seen.toFloat() / total).coerceIn(0f, 1f))
+                        }
+                    }
+                    return n
+                }
+
+                override fun read(): Int = super.read().also { if (it >= 0) count(1) }
+                override fun read(b: ByteArray, off: Int, len: Int): Int = count(super.read(b, off, len))
+            }
+            TarExtractor.extract(counted, destination, onWarning = { warning -> Log.w(TAG, warning) })
+        }
+    }
+
+    /**
+     * Writes the files that must come from the host.
+     *
+     * The guest has no resolver of its own, and PRoot binds these over the rootfs copies, so the
+     * archive's own versions are never used.
+     *
+     * Called before every session as well as at provisioning, because a tablet moves between
+     * networks and a resolver captured once at install time goes stale.
+     */
+    internal fun writeHostFiles(context: Context) {
+        val servers = mutableListOf<String>()
+        runCatching {
+            val cm = context.getSystemService(ConnectivityManager::class.java)
+            cm?.activeNetwork?.let { network ->
+                cm.getLinkProperties(network)?.dnsServers?.forEach { address ->
+                    // IPv6 resolvers are skipped: they are often unreachable from the guest
+                    // (the emulator's fec0::3, link-local ones carrying a %scope glibc cannot
+                    // parse), and glibc tries them in order, so one listed first stalls or fails
+                    // every lookup with "Temporary failure resolving".
+                    if (address is java.net.Inet4Address) address.hostAddress?.let { servers += it }
+                }
+            }
+        }
+        // Public fallbacks after the network's own; glibc only reads the first three.
+        listOf("8.8.8.8", "1.1.1.1").forEach { if (it !in servers) servers += it }
+
+        ShellPaths.resolvConf(context).writeText(
+            servers.take(3).joinToString("\n") { "nameserver $it" } +
+                "\noptions timeout:2 attempts:2\n"
+        )
+        ShellPaths.hostsFile(context).writeText(
+            "127.0.0.1 localhost\n::1 localhost ip6-localhost ip6-loopback\n"
+        )
+    }
+
+    /**
+     * Small fixes applied after extraction.
+     *
+     * Every one of these is something a normal Debian install gets from its packaging or from a
+     * boot, and which a base image that was never booted does not have.
+     */
+    private fun postInstall(context: Context, rootfs: File) {
+        // dpkg and apt expect these before either runs, and /dev/shm is where the bind mounts.
+        listOf(
+            "var/lib/apt/lists/partial",
+            "var/cache/apt/archives/partial",
+            "var/log/apt",
+            "dev/shm",
+            "run/lock",
+        ).forEach { File(rootfs, it).mkdirs() }
+
+        // The image ships an http:// mirror (deb.debian.org) and no CA bundle. That combination
+        // is deliberate: apt over http is still integrity- and origin-checked through the archive
+        // keyring the image does carry, so it works on first boot, and the CA bundle this app adds
+        // separately is what lets pip, npm, git and the agents use https.
+
+        installCaCertificates(context, rootfs)
+    }
+
+    /**
+     * Installs a CA bundle into the guest.
+     *
+     * The Debian base image ships the archive keyring but no certificate authorities, so every
+     * https:// request from inside the guest fails with "No system certificates available" — which
+     * breaks pip, npm, git and curl, and therefore every agent this app exists to run.
+     *
+     * `ca-certificates` cannot be installed with apt, because that is exactly the tool that needs
+     * working TLS. The bundle is unpacked from the asset directly instead.
+     *
+     * The bundle alone is enough: the tools that matter read `SSL_CERT_FILE` and its equivalents,
+     * which [ProotCommand.guestEnvironment] points here. The hash-named symlinks OpenSSL uses when
+     * it is pointed at a whole directory are deliberately not generated, because they depend on
+     * the exact certificate set and would silently go stale when the bundle is refreshed.
+     */
+    private fun installCaCertificates(context: Context, rootfs: File) {
+        val certsDir = File(rootfs, "etc/ssl/certs").apply { mkdirs() }
+        val bundle = File(certsDir, CA_BUNDLE)
+
+        runCatching {
+            context.assets.open(CA_BUNDLE).use { input ->
+                bundle.outputStream().use { output -> input.copyTo(output) }
+            }
+            Log.i(TAG, "Installed CA bundle (${bundle.length()} bytes)")
+        }.onFailure {
+            // Not fatal: apt works over http regardless, only https-dependent tools are affected.
+            Log.w(TAG, "Could not install the CA bundle", it)
+        }
+    }
+
+    /**
+     * Adds the host's supplementary group IDs to the guest's group database.
+     *
+     * The app process carries Android's own group IDs — `inet`, `sdcard_rw`, plus a per-install
+     * range derived from the app's UID. PRoot passes them through to the guest, and every command
+     * that resolves group names (`id`, `ls -l`, and so every shell prompt) prints
+     * "groups: cannot find name for group ID 3003" on the guest's stderr.
+     *
+     * The IDs are read from this process rather than hardcoded: the high ones are derived from the
+     * app's UID, so they differ per install and per device. This runs at provisioning time, which
+     * is exactly once per install, so the list stays correct.
+     */
+    private fun fixGroupDatabase(rootfs: File) {
+        runCatching {
+            val ids = hostGroupIds()
+            if (ids.isEmpty()) return
+
+            listOf("etc/group", "etc/group-").forEach { name ->
+                val file = File(rootfs, name)
+                if (!file.isFile) return@forEach
+
+                // Drop any entries a previous attempt added, then re-add the current set. That
+                // keeps the file correct when provisioning is retried, and when the app's UID —
+                // and therefore its supplementary group range — changes between installs.
+                val lines = file.readLines()
+                    .filterNot { it.startsWith(GROUP_PREFIX) }
+                    .toMutableList()
+                // Format is `name:password:gid:members`; the password field must be present even
+                // though it is unused, or the gid lands in the wrong column and never resolves.
+                ids.forEach { id: Int -> lines += "$GROUP_PREFIX$id:x:$id:" }
+                file.writeText(lines.joinToString("\n") + "\n")
+            }
+            Log.i(TAG, "Added ${ids.size} host group IDs to the guest")
+        }.onFailure { Log.w(TAG, "Could not extend the group database", it) }
+    }
+
+    /**
+     * The supplementary group IDs of this process, read from `/proc/self/status`.
+     *
+     * There is no API for these: `Os.getgroups` exists but is not exposed, and the IDs cannot be
+     * hardcoded because the high ones are derived from the app's UID, so they change on every
+     * install. The kernel reports them in the `Groups:` line of the process status file.
+     */
+    private fun hostGroupIds(): Set<Int> = runCatching {
+        val status = File("/proc/self/status")
+        if (!status.isFile) return emptySet()
+        val line = status.readLines().firstOrNull { it.startsWith("Groups:") }
+            ?: return emptySet()
+        line.removePrefix("Groups:").trim()
+            .split(' ')
+            .mapNotNull { it.trim().toIntOrNull() }
+            .toSet()
+    }.getOrDefault(emptySet())
+
+    /** Marks the placeholder group entries this app adds, so they can be replaced wholesale. */
+    private const val GROUP_PREFIX = "termfold"
+
+    private fun nativeDir(context: Context): String = context.applicationInfo.nativeLibraryDir
+
+    /** The distribution this app bundles. */
+    const val FLAVOUR = "Debian 13 (trixie)"
+}
