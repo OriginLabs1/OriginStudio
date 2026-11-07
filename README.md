@@ -1,12 +1,14 @@
-# Origin Studio
+<p align="center"><img src="docs/media/app-icon-512.png" width="96" height="96" alt="Origin Studio app icon"></p>
 
-**One workspace. One coherent ecosystem. Replaceable implementations. User-controlled execution. Reproducible knowledge. Verifiable outcomes.**
+<h1 align="center">Origin Studio</h1>
 
-Made with love from OneOrigin.
+<p align="center"><strong>One workspace. One coherent ecosystem. Replaceable implementations. User-controlled execution. Reproducible knowledge. Verifiable outcomes.</strong></p>
+
+<p align="center">Made with love from OneOrigin.</p>
 
 ## About
 
-Origin Studio is OneOrigin's flagship development workspace: an Android-first, device-agnostic-by-design environment that unifies and strategically extends useful capabilities from CodeOnTheGo and TermFold while establishing reusable foundations for future OneOrigin products.
+Origin Studio is OneOrigin's flagship development workspace: an Android-first, device-agnostic-by-design environment that unifies and strategically extends the useful capabilities of our earlier tools while establishing reusable foundations for future OneOrigin products.
 
 ## Features
 

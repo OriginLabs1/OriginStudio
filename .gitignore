@@ -33,3 +33,6 @@ origin-agent/
 # OS noise
 .DS_Store
 Thumbs.db
+
+# Tooling
+node_modules/
