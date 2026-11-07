@@ -79,6 +79,16 @@ android {
                 storePassword = storePass
                 keyAlias = "termfold"
                 keyPassword = secret("termfold.keyPassword", "TERMFOLD_KEY_PASSWORD") ?: storePass
+
+                // Sign with every scheme the platform knows. AGP drops v1 automatically once
+                // minSdk >= 24, but several OEM package installers (and some file managers
+                // that hand the APK to the installer) still validate the JAR signature first
+                // and reject a v2-only APK as "corrupted or not a valid Android package".
+                // v1 costs a few hundred KB and removes that whole failure class; v2 and v3
+                // keep modern Android on the stronger schemes.
+                enableV1Signing = true
+                enableV2Signing = true
+                enableV3Signing = true
             }
         }
     }
