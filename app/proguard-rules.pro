@@ -24,6 +24,13 @@
 -keep class com.termux.terminal.TerminalColors { *; }
 -keep class com.termux.terminal.TerminalColorScheme { *; }
 
+# The local-AI foundation (docs/adr/0001-qvac-local-ai.md) ships in v0.0.2 without a UI
+# surface yet, so nothing in the app references it and R8 would delete it from the release
+# APK. The artifact must contain the engine and its availability gate: device verification
+# and the MLP that exposes Ask/Explain/Fix are performed against this APK, not the source
+# tree. The QVAC SDK classes it calls are retained transitively through these members.
+-keep class com.oneorigin.studio.ai.** { *; }
+
 # The file editor's page calls back into these through addJavascriptInterface.
 -keepclassmembers class * {
     @android.webkit.JavascriptInterface <methods>;

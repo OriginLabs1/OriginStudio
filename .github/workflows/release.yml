@@ -118,6 +118,21 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Cache verified QVAC runtime
+        uses: actions/cache@v4
+        with:
+          path: .qvac
+          key: qvac-${{ runner.os }}-${{ hashFiles('gradle.properties') }}
+
+      - name: Fetch and verify QVAC
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The pinned artifact is never resolved from a mutable remote. The script checks
+          # its SHA-256 against gradle.properties before Gradle can see the repository.
+          python tools/fetch-qvac.py
+          test -d .qvac/qvac-maven-repository
+
       - name: Install asset tooling
         shell: bash
         run: python -m pip install --upgrade zstandard
@@ -286,7 +301,11 @@ jobs:
           - PRoot, not a virtual machine: no systemd, no kernel modules, no raw sockets.
           - Bring your own account or API key for each external coding agent.
           - Not on Google Play. Distributed through GitHub Releases and Obtainium.
-          - Local AI (QVAC) is not included in this build yet; the core workspace remains fully usable without it.
+          - This release adds the pinned QVAC local-AI runtime as the MLP foundation. The
+            Ask/Explain/Fix editor surface is not exposed yet; the core workspace remains fully
+            usable without it. The runtime requires arm64-v8a and Android 10 (API 29) or newer.
+          - QVAC cannot run on emulators. Functional inference is verified on a physical arm64
+            device before the MLP release, not by CI.
 
           ### Distribution
 

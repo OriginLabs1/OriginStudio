@@ -15,6 +15,7 @@ Origin Studio is OneOrigin's flagship development workspace: an Android-first, d
 - **Real Linux Environment** - A full Debian environment inside the app
 - **Native Code Editing** - Built-in file browser and editor with syntax highlighting
 - **Integrated Terminal** - Full Linux terminal with PRoot support
+- **Local AI Foundation** - Pinned, hash-verified QVAC runtime for the upcoming offline Ask/Explain/Fix surface (arm64, Android 10+)
 - **AI Agent Support** - Native chat with ACP agents (Claude, Codex, OpenCode, and more)
 - **Browser for Testing** - Built-in browser for dev servers and web pages
 - **Project Management** - Open, create, and manage projects seamlessly
@@ -32,6 +33,7 @@ Every release ships a signed APK, a SHA-256 checksum, the signing certificate fi
 ## Requirements
 
 - Android 8.0+ (API 26+), 64-bit ARM (arm64-v8a) or x86_64
+- Local AI runtime: 64-bit ARM (arm64-v8a) and Android 10+ (API 29+)
 - 4 GB RAM or more (optimized for modest hardware)
 - Several GB of free storage for the Debian environment and developer tools
 

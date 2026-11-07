@@ -11,12 +11,24 @@ plugins {
 val originVersionName: String =
     providers.environmentVariable("ORIGIN_VERSION_NAME").orNull
         ?: providers.gradleProperty("origin.versionName").orNull
-        ?: "0.0.1"
+        ?: "0.0.2"
 val originVersionCode: Int =
     (
         providers.environmentVariable("ORIGIN_VERSION_CODE").orNull
             ?: providers.gradleProperty("origin.versionCode").orNull
-        )?.toIntOrNull() ?: 1
+        )?.toIntOrNull() ?: 2
+
+// QVAC is the MLP's local-AI engine, so the app does not build without the pinned
+// artifact. The repository is fetched once with `python3 tools/fetch-qvac.py`, which
+// verifies the SHA-256 from gradle.properties before anything is unpacked.
+val qvacVersion: String = providers.gradleProperty("qvac.version").get()
+val qvacRepository = rootProject.layout.projectDirectory.dir(".qvac/qvac-maven-repository").asFile
+if (!qvacRepository.isDirectory) {
+    throw GradleException(
+        "QVAC ${qvacVersion} is not available at ${qvacRepository.path}.\n" +
+            "Run: python3 tools/fetch-qvac.py"
+    )
+}
 
 android {
     namespace = "com.oneorigin.studio"
@@ -164,6 +176,12 @@ dependencies {
     implementation("androidx.documentfile:documentfile:1.0.0")
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("io.coil-kt:coil-svg:2.7.0")
+
+    // Local AI. The LLM profile carries the Kotlin client, the BareKit worker and the
+    // arm64-v8a native addons. It declares minSdk 29, which is wider than this app's
+    // floor, so the manifest merges it with an explicit override and every entry point
+    // is gated at runtime (see docs/adr/0001-qvac-local-ai.md).
+    implementation("io.tether:qvac-sdk-android-llm:$qvacVersion")
 
     // The tar reader that unpacks the bundled rootfs is pure Kotlin with no Android
     // dependencies, so it is covered by a plain JVM test against the real Debian image.
