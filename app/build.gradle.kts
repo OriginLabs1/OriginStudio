@@ -21,6 +21,10 @@ val originVersionCode: Int =
 android {
     namespace = "com.oneorigin.studio"
     compileSdk = 36
+    // Pin the toolchain that signs and inspects releases. Newer build-tools on a CI image are
+    // not automatically safe for a targetSdk 28 app, and a release must not change tools by
+    // accident when the runner image updates.
+    buildToolsVersion = "36.0.0"
 
     defaultConfig {
         applicationId = "com.oneorigin.studio"

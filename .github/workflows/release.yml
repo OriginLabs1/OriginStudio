@@ -161,15 +161,29 @@ jobs:
           APK="app/build/outputs/apk/release/OriginStudio-release.apk"
           test -f "${APK}"
 
-          APKSIGNER="$(find "${ANDROID_HOME}/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
-          test -n "${APKSIGNER}"
+          # Use exactly the build-tools the app is built with. The runner image also ships
+          # newer preview build-tools, and picking the highest one made apksigner reject an
+          # APK that is valid for this app's pinned toolchain.
+          APKSIGNER="${ANDROID_HOME}/build-tools/36.0.0/apksigner"
+          test -x "${APKSIGNER}"
+          "${APKSIGNER}" version
 
           # apksigner exits non-zero if the APK is unsigned or the signature is invalid, which
-          # fails the job before anything can be published.
-          "${APKSIGNER}" verify --verbose --print-certs "${APK}" > signing-certificate.txt
+          # fails the job before anything can be published. Tee the report so a failure is
+          # visible in the job log instead of hidden inside an artifact.
+          set +e
+          "${APKSIGNER}" verify --verbose --print-certs "${APK}" 2>&1 | tee signing-certificate.txt
+          VERIFY_STATUS=${PIPESTATUS[0]}
+          set -e
+          if [ "${VERIFY_STATUS}" -ne 0 ]; then
+            echo "::error::apksigner could not verify the APK (exit ${VERIFY_STATUS}). Refusing to publish."
+            exit "${VERIFY_STATUS}"
+          fi
 
           grep -q "Number of signers: 1" signing-certificate.txt
-          CERT_SHA256="$(grep -m 1 'Signer #1 certificate SHA-256 digest:' signing-certificate.txt | sed 's/.*digest: *//' | tr -d '[:space:]')"
+          # apksigner renamed this line from "Signer #1 certificate SHA-256 digest" to
+          # "V2 Signer: certificate SHA-256 digest" in build-tools 36.1, so accept both.
+          CERT_SHA256="$(grep -m 1 -E '(^Signer #1 certificate SHA-256 digest:|V2 Signer: certificate SHA-256 digest:)' signing-certificate.txt | sed 's/.*digest: *//' | tr -d '[:space:]')"
           if ! [[ "${CERT_SHA256}" =~ ^[0-9a-fA-F]{64}$ ]]; then
             echo "::error::Could not read the signing certificate SHA-256 digest."
             exit 1
