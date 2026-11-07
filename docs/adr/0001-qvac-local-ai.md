@@ -176,10 +176,13 @@ Verified locally on 2026-11-07 against the signed release APK unless stated othe
       because QVAC does not run on emulators.
 - [ ] Airplane mode after download: Ask/Explain/Fix still work. Not performed (no device).
 - [ ] Process death during generation leaves the editor content intact. Not performed (no device).
-- [ ] Signed APK, checksums, manifest and certificate fingerprint are published.
-      The local signed artifact matches the `v0.0.1` certificate
-      (`50b127efc5f6db273d22f9487da9a133572404b78cc46548b33646f3a0bf76db`); the
-      published set is produced by the tag workflow.
+- [x] Signed APK, checksums, manifest and certificate fingerprint are published.
+      `v0.0.2` is live: APK SHA-256 `382d8c32dfc957cd461491ee4c633cba4b248ee92d6bafc2c02de0a6cb29bb52`,
+      252,522,259 bytes, certificate
+      `50b127efc5f6db273d22f9487da9a133572404b78cc46548b33646f3a0bf76db` — the same
+      certificate as `v0.0.1`, so updates install in place. The published dex contains
+      `com.oneorigin.studio.ai` and `io.tether.qvac`, and the APK keeps
+      `minSdk 26` / `targetSdk 28`.
 
 The three device items are the only checklist entries that block the MLP release, not this
 foundation release. They are also why the Ask/Explain/Fix surface is not exposed yet.
