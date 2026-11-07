@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>How TermFold runs Debian and AI coding agents on Android without root</title>
-<meta name="description" content="Five Android restrictions that stop a Linux system from running inside an app (W^X, seccomp fork, hard links, hidden /proc and more) and the fix for each. Notes from building TermFold.">
-<link rel="canonical" href="https://bibarud.github.io/TermFold/how-it-works/">
+<title>How Origin Studio runs Debian and AI coding agents on Android without root</title>
+<meta name="description" content="Five Android restrictions that stop a Linux system from running inside an app (W^X, seccomp fork, hard links, hidden /proc and more) and the fix for each. Notes from building Origin Studio.">
+<link rel="canonical" href="https://originlabs1.github.io/OriginStudio/how-it-works/">
 <link rel="icon" href="../media/logo.png">
 <meta name="theme-color" content="#f6f2ea">
 <meta property="og:type" content="article">
-<meta property="og:title" content="How TermFold runs Debian and AI coding agents on Android without root">
+<meta property="og:title" content="How Origin Studio runs Debian and AI coding agents on Android without root">
 <meta property="og:description" content="Five Android restrictions that stop Linux from running inside an app, and the fix for each.">
-<meta property="og:url" content="https://bibarud.github.io/TermFold/how-it-works/">
-<meta property="og:image" content="https://bibarud.github.io/TermFold/media/social-preview.png">
+<meta property="og:url" content="https://originlabs1.github.io/OriginStudio/how-it-works/">
+<meta property="og:image" content="https://originlabs1.github.io/OriginStudio/media/social-preview.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,22 +22,22 @@
 <body>
 <div class="page">
   <header class="mast">
-    <a class="name" href="../"><img src="../media/logo.png" alt="" width="26" height="23">TermFold</a>
+    <a class="name" href="../"><img src="../media/logo.png" alt="" width="26" height="23">Origin Studio</a>
     <nav aria-label="Main">
       <a href="../#install">Install</a>
       <a href="./">How it works</a>
-      <a href="https://github.com/Bibarud/TermFold">GitHub</a>
+      <a href="https://github.com/OriginLabs1/OriginStudio">GitHub</a>
     </nav>
   </header>
 </div>
 
 <article class="article">
-  <h1>How TermFold runs Debian and AI coding agents on Android without root</h1>
-  <p class="byline">Notes from building it, by Bibarud</p>
+  <h1>How Origin Studio runs Debian and AI coding agents on Android without root</h1>
+  <p class="byline">Notes from building it, by OriginLabs1</p>
 
   <p>Android does not want you to run a Linux system inside an app. Five restrictions got in my way, and each has a specific and slightly odd fix. These are the notes I wish I had had at the start.</p>
 
-  <p>TermFold unpacks a real Debian 13 root filesystem and runs it with <a href="https://proot-me.github.io/">PRoot</a>, so <code>apt</code>, <code>git</code>, Node, Python and the coding agents work on a tablet. PRoot does the heavy lifting, but PRoot alone does not give you a working system.</p>
+  <p>Origin Studio unpacks a real Debian 13 root filesystem and runs it with <a href="https://proot-me.github.io/">PRoot</a>, so <code>apt</code>, <code>git</code>, Node, Python and the coding agents work on a tablet. PRoot does the heavy lifting, but PRoot alone does not give you a working system.</p>
 
   <h2>1. You can only execute files the OS installed</h2>
   <p>Since Android 10 an app cannot <code>execve</code> anything under its own data directory, whatever the permission bits say. There is exactly one exception: the native library directory, which the system fills at install time from <code>jniLibs</code>, and only with files named <code>lib*.so</code>.</p>
@@ -46,30 +46,30 @@
   <h2>2. The target SDK, and a thing I got wrong</h2>
   <p>At API 29 and above an app runs in a stricter SELinux domain, where executing files from app data is denied outright. Termux pins <code>targetSdk = 28</code> for exactly this reason, and I did the same. I also told people, including in an earlier version of this page, that the target had to stay at 28 or nothing would run.</p>
   <p>That was wrong, or at least much too strong. I later built a copy of the app with <code>targetSdk = 34</code> and ran it next to the real one on an Android 16 tablet. The whole Debian setup completed, and a binary I compiled in the app, a copied binary, a freshly built shared library and an npm package with a native executable all ran. PRoot never asks the kernel to execute files in app storage: its own loader, which Android allows to run, maps the guest program into memory instead.</p>
-  <blockquote>It is one device and one Android version, so I am not claiming it is solved. The <a href="https://github.com/Bibarud/TermFold/blob/main/docs/ANDROID-COMPATIBILITY.md">full write-up</a> has the method, what I do not know yet, and the plan.</blockquote>
+  <blockquote>It is one device and one Android version, so I am not claiming it is solved. The <a href="https://github.com/OriginLabs1/OriginStudio/blob/main/docs/ANDROID-COMPATIBILITY.md">full write-up</a> has the method, what I do not know yet, and the plan.</blockquote>
 
   <h2>3. Raw fork() is answered with ENOSYS</h2>
   <p>Android's seccomp filter makes the plain <code>fork</code> syscall fail for app processes. Apps are expected to use <code>clone</code>. That does not stop PRoot, because glibc programs use <code>clone</code>, so the whole Debian guest runs fine. What breaks is anything that calls <code>fork</code> directly, and BusyBox's <code>tar</code> does. The sign in PRoot's verbose log is a <code>fork</code> that returns a child pid, followed by a <code>SIGSYS</code> that overwrites the successful result with <code>-ENOSYS</code>.</p>
-  <p>The fix was to stop shelling out. TermFold unpacks the root filesystem with its own tar reader written in Kotlin. That also means the filesystem is in place before any bundled executable has to prove it runs, which makes first-start failures much easier to tell apart.</p>
+  <p>The fix was to stop shelling out. Origin Studio unpacks the root filesystem with its own tar reader written in Kotlin. That also means the filesystem is in place before any bundled executable has to prove it runs, which makes first-start failures much easier to tell apart.</p>
 
   <h2>4. Hard links are forbidden, and dpkg needs them</h2>
   <p>Inside an app's directory, <code>link(2)</code> returns <code>EPERM</code>. dpkg, npm, git, pip and <code>tar</code> all assume they can make hard links. The usual workaround, PRoot's <code>--link2symlink</code>, fakes a hard link with a hidden data file kept beside the first name. It works until a program replaces that folder, which npm does on every install: the data disappears while other names still point at it. That is how a 240 MB Claude Code binary was lost during development.</p>
-  <p>TermFold now preloads a small library through <code>/etc/ld.so.preload</code>, the way a distribution would. When the kernel refuses a <code>link()</code>, the library turns it into an independent copy of the file. Every tool above accepts that, and only <code>st_nlink</code> stays at 1. Only glibc reads that preload file, so static and musl programs are untouched.</p>
+  <p>Origin Studio now preloads a small library through <code>/etc/ld.so.preload</code>, the way a distribution would. When the kernel refuses a <code>link()</code>, the library turns it into an independent copy of the file. Every tool above accepts that, and only <code>st_nlink</code> stays at 1. Only glibc reads that preload file, so static and musl programs are untouched.</p>
   <p>Debian added one more wrinkle. Packages such as <code>openssh-client</code> run <code>groupadd</code> in their post-install script. Shadow locks <code>/etc/group</code> with a hard link and then insists the link count is exactly two, which no copy can satisfy. The setup swaps in small replacements for <code>groupadd</code> and <code>useradd</code>, using <code>dpkg-divert</code> so that package updates leave them alone.</p>
 
   <h2>5. Android hides /proc/stat</h2>
   <p>Apps cannot read <code>/proc/stat</code>, <code>/proc/uptime</code>, <code>/proc/version</code> and a few others. Most programs shrug. Some need them. LibreOffice refuses to start without <code>/proc/version</code>. The new native Codex CLI works out a process's start time from the boot time in <code>/proc/stat</code>, so it can record its background server, and without that it stops with "failed to read start time for pid-managed app server".</p>
-  <p>PRoot can bind a file over any path, so TermFold writes plausible stand-ins for the hidden files and binds them in. The one subtle part is the boot time. A process's start time is that boot time plus a per-process offset, and a program that saved it earlier compares it with what it reads later. If the fake boot time drifted by a single second between sessions, the program would decide its own process had gone. So the value is kept steady across sessions.</p>
+  <p>PRoot can bind a file over any path, so Origin Studio writes plausible stand-ins for the hidden files and binds them in. The one subtle part is the boot time. A process's start time is that boot time plus a per-process offset, and a program that saved it earlier compares it with what it reads later. If the fake boot time drifted by a single second between sessions, the program would decide its own process had gone. So the value is kept steady across sessions.</p>
 
   <h2>And a cheaper browser for agents</h2>
-  <p>TermFold also gives agents a real browser to test web work. My first version returned every control on the page on every call, which costs a lot of tokens on a long page. The current one does what other agent browsers do: it lists only what is on screen, has a <code>--changed</code> mode that prints just what differs from the last snapshot, a <code>--find</code> to locate one control anywhere, and it saves the full list to a file the agent can <code>grep</code>. On a long Wikipedia article that took a snapshot from about 29,000 characters to about 1,200. Screenshots became small JPEGs that can be skipped when the page has not changed.</p>
+  <p>Origin Studio also gives agents a real browser to test web work. My first version returned every control on the page on every call, which costs a lot of tokens on a long page. The current one does what other agent browsers do: it lists only what is on screen, has a <code>--changed</code> mode that prints just what differs from the last snapshot, a <code>--find</code> to locate one control anywhere, and it saves the full list to a file the agent can <code>grep</code>. On a long Wikipedia article that took a snapshot from about 29,000 characters to about 1,200. Screenshots became small JPEGs that can be skipped when the page has not changed.</p>
 
-  <p>The source is under Apache-2.0 on <a href="https://github.com/Bibarud/TermFold">GitHub</a>, and the <a href="https://github.com/Bibarud/TermFold/blob/main/docs/SHELL-NOTES.md">full engineering notes</a> go into more detail. You can <a href="https://github.com/Bibarud/TermFold/releases/latest">download the app</a> or go back to the <a href="../">front page</a>.</p>
+  <p>The source is under Apache-2.0 on <a href="https://github.com/OriginLabs1/OriginStudio">GitHub</a>, and the <a href="https://github.com/OriginLabs1/OriginStudio/blob/main/docs/SHELL-NOTES.md">full engineering notes</a> go into more detail. You can <a href="https://github.com/OriginLabs1/OriginStudio/releases/latest">download the app</a> or go back to the <a href="../">front page</a>.</p>
 </article>
 
 <div class="page">
   <footer>
-    <p>TermFold is made by one person, <a href="https://github.com/Bibarud">Bibarud</a>. Questions and corrections are welcome in <a href="https://github.com/Bibarud/TermFold/discussions">discussions</a>.</p>
+    <p>Origin Studio is made by one person, <a href="https://github.com/OriginLabs1">OriginLabs1</a>. Questions and corrections are welcome in <a href="https://github.com/OriginLabs1/OriginStudio/discussions">discussions</a>.</p>
   </footer>
 </div>
 </body>

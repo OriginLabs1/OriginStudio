@@ -1,0 +1,309 @@
+name: Release
+
+# Tag-driven, reproducible releases for OriginLabs1/OriginStudio.
+#
+#   git tag v0.0.1 && git push origin v0.0.1
+#
+# The pipeline refuses to publish an unsigned APK. It builds from the tagged commit, signs with
+# the OriginLabs1 release key, verifies the signature, writes SHA-256 checksums and a release
+# manifest, and publishes everything to GitHub Releases so Obtainium can track it.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version without the leading v (for example 0.0.1)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build, sign, verify, publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    env:
+      TERMFOLD_STORE_PASSWORD: ${{ secrets.TERMFOLD_STORE_PASSWORD }}
+      TERMFOLD_KEY_PASSWORD: ${{ secrets.TERMFOLD_KEY_PASSWORD }}
+
+    steps:
+      - name: Check out the tagged source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Derive version from tag
+        id: version
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            VERSION="${INPUT_VERSION}"
+          else
+            VERSION="${GITHUB_REF_NAME}"
+          fi
+          VERSION="${VERSION#v}"
+
+          # Stable semver only. A tag must be vX.Y.Z so versionCode stays monotonic and
+          # Obtainium can treat every published release as an update.
+          if ! [[ "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Version '${VERSION}' must be stable semver (major.minor.patch)."
+            exit 1
+          fi
+
+          CORE="${VERSION}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "${CORE}"
+          VERSION_CODE=$((10#${MAJOR} * 10000 + 10#${MINOR} * 100 + 10#${PATCH}))
+          if [ "${VERSION_CODE}" -lt 1 ] || [ "${VERSION_CODE}" -gt 2100000000 ]; then
+            echo "::error::Computed versionCode ${VERSION_CODE} is outside Android's accepted range."
+            exit 1
+          fi
+
+          echo "name=${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "code=${VERSION_CODE}" >> "${GITHUB_OUTPUT}"
+          echo "tag=v${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "Building Origin Studio ${VERSION} (versionCode ${VERSION_CODE})"
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle with caching
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Android SDK 36
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android platform and build tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Set up Python for asset staging
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install asset tooling
+        shell: bash
+        run: python -m pip install --upgrade zstandard
+
+      - name: Stage Linux runtime and CA bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/fetch-shell-runtime.py
+          python tools/fetch-ca-bundle.py
+
+      - name: Require signing key
+        shell: bash
+        env:
+          ORIGIN_KEYSTORE_BASE64: ${{ secrets.ORIGIN_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ORIGIN_KEYSTORE_BASE64}" ]; then
+            echo "::error::ORIGIN_KEYSTORE_BASE64 is not configured. Refusing to build an unsigned release."
+            exit 1
+          fi
+          if [ -z "${TERMFOLD_STORE_PASSWORD}" ]; then
+            echo "::error::TERMFOLD_STORE_PASSWORD is not configured. Refusing to build an unsigned release."
+            exit 1
+          fi
+          printf '%s' "${ORIGIN_KEYSTORE_BASE64}" | base64 --decode > termfold-release.jks
+          test -s termfold-release.jks
+
+      - name: Build signed release APK
+        shell: bash
+        env:
+          ORIGIN_VERSION_NAME: ${{ steps.version.outputs.name }}
+          ORIGIN_VERSION_CODE: ${{ steps.version.outputs.code }}
+        run: ./gradlew --no-daemon assembleRelease
+
+      - name: Verify signature and record certificate
+        id: signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="app/build/outputs/apk/release/OriginStudio-release.apk"
+          test -f "${APK}"
+
+          APKSIGNER="$(find "${ANDROID_HOME}/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
+          test -n "${APKSIGNER}"
+
+          # apksigner exits non-zero if the APK is unsigned or the signature is invalid, which
+          # fails the job before anything can be published.
+          "${APKSIGNER}" verify --verbose --print-certs "${APK}" > signing-certificate.txt
+
+          grep -q "Number of signers: 1" signing-certificate.txt
+          CERT_SHA256="$(grep -m 1 'Signer #1 certificate SHA-256 digest:' signing-certificate.txt | sed 's/.*digest: *//' | tr -d '[:space:]')"
+          if ! [[ "${CERT_SHA256}" =~ ^[0-9a-fA-F]{64}$ ]]; then
+            echo "::error::Could not read the signing certificate SHA-256 digest."
+            exit 1
+          fi
+
+          echo "cert_sha256=${CERT_SHA256,,}" >> "${GITHUB_OUTPUT}"
+          echo "Signed and verified. Certificate SHA-256: ${CERT_SHA256}"
+
+      - name: Assemble release artifacts
+        id: artifacts
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.name }}
+          VERSION_CODE: ${{ steps.version.outputs.code }}
+          TAG: ${{ steps.version.outputs.tag }}
+          CERT_SHA256: ${{ steps.signing.outputs.cert_sha256 }}
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          APK="app/build/outputs/apk/release/OriginStudio-release.apk"
+          ASSET="release/OriginStudio-${VERSION}.apk"
+          cp "${APK}" "${ASSET}"
+
+          SHA256="$(sha256sum "${ASSET}" | awk '{print $1}')"
+          printf '%s  %s\n' "${SHA256}" "$(basename "${ASSET}")" > "release/OriginStudio-${VERSION}.apk.sha256"
+          cp signing-certificate.txt "release/signing-certificate.txt"
+
+          cat > release/release-manifest.json <<EOF
+          {
+            "product": "Origin Studio",
+            "package": "com.oneorigin.studio",
+            "versionName": "${VERSION}",
+            "versionCode": ${VERSION_CODE},
+            "tag": "${TAG}",
+            "commit": "${GITHUB_SHA}",
+            "buildDateUtc": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "apk": "$(basename "${ASSET}")",
+            "apkSizeBytes": $(stat -c %s "${ASSET}"),
+            "apkSha256": "${SHA256}",
+            "signingCertificateSha256": "${CERT_SHA256}",
+            "minSdk": 26,
+            "targetSdk": 28,
+            "compileSdk": 36,
+            "supportedAbis": ["arm64-v8a", "x86_64"],
+            "distribution": {
+              "canonical": "https://github.com/OriginLabs1/OriginStudio/releases",
+              "obtainium": "https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/OriginLabs1/OriginStudio"
+            }
+          }
+          EOF
+
+          # Keep the manifest and checksum consistent and easy to verify offline.
+          (cd release && sha256sum OriginStudio-* signing-certificate.txt release-manifest.json > SHA256SUMS)
+
+          echo "apk=${ASSET}" >> "${GITHUB_OUTPUT}"
+          echo "sha256=${SHA256}" >> "${GITHUB_OUTPUT}"
+          cat release/OriginStudio-${VERSION}.apk.sha256
+          cat release/SHA256SUMS
+
+      - name: Write release notes
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.name }}
+          VERSION_CODE: ${{ steps.version.outputs.code }}
+          SHA256: ${{ steps.artifacts.outputs.sha256 }}
+          CERT_SHA256: ${{ steps.signing.outputs.cert_sha256 }}
+        run: |
+          set -euo pipefail
+          cat > release-notes.md <<EOF
+          ## Origin Studio ${VERSION}
+
+          Built from tag \`v${VERSION}\` at commit \`${GITHUB_SHA}\`. versionCode ${VERSION_CODE}.
+
+          ### Install
+
+          1. Download \`OriginStudio-${VERSION}.apk\` below and open it.
+          2. Or add \`github.com/OriginLabs1/OriginStudio\` to [Obtainium](https://github.com/ImranR98/Obtainium) for automatic updates.
+          3. Allow installs from your browser or file manager when Android asks.
+
+          ### Verify
+
+          SHA-256  ${SHA256}
+
+          The APK is signed with the OriginLabs1 release key. Signing certificate SHA-256:
+
+          \`\`\`
+          ${CERT_SHA256}
+          \`\`\`
+
+          Compare the checksum with \`OriginStudio-${VERSION}.apk.sha256\` and the certificate with
+          \`signing-certificate.txt\`. Every artifact is listed in \`SHA256SUMS\` and described in
+          \`release-manifest.json\`.
+
+          ### Requirements and known limitations
+
+          - Android 8.0+ (API 26+). The Linux environment targets API 28 for PRoot execution.
+          - 64-bit ARM (arm64-v8a) or x86_64 device.
+          - 4 GB RAM recommended; several GB of free storage for Debian and developer tools.
+          - First launch unpacks Debian and downloads developer tools, so an internet connection is needed once.
+          - PRoot, not a virtual machine: no systemd, no kernel modules, no raw sockets.
+          - Bring your own account or API key for each external coding agent.
+          - Not on Google Play. Distributed through GitHub Releases and Obtainium.
+          - Local AI (QVAC) is not included in this build yet; the core workspace remains fully usable without it.
+
+          ### Distribution
+
+          GitHub Releases is the canonical source. Obtainium, the website and any mirror must
+          resolve to these artifacts and never re-sign or silently modify them.
+          EOF
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: OriginStudio-${{ steps.version.outputs.name }}
+          path: release/*
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.name }}
+        run: |
+          set -euo pipefail
+
+          if gh release view "${TAG}" --repo "${GITHUB_REPOSITORY}" > /dev/null 2>&1; then
+            echo "::error::Release ${TAG} already exists. Bump the version instead of reusing a tag."
+            exit 1
+          fi
+
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            gh release create "${TAG}" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --target "${GITHUB_SHA}" \
+              --title "Origin Studio ${VERSION}" \
+              --notes-file release-notes.md \
+              release/*
+          else
+            gh release create "${TAG}" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --verify-tag \
+              --title "Origin Studio ${VERSION}" \
+              --notes-file release-notes.md \
+              release/*
+          fi
+
+      - name: Clean up signing key
+        if: always()
+        shell: bash
+        run: |
+          rm -f termfold-release.jks
+          rm -rf "${RUNNER_TEMP:?}/"*

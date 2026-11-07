@@ -14,14 +14,16 @@ Renaming libtalloc.so.2 to libtalloc.so means libproot.so can no longer resolve
 its DT_NEEDED entry, so that string is rewritten in place (it only gets shorter,
 so no ELF offsets move).
 """
+import fnmatch
+import io
 import lzma
 import os
+import re
 import shutil
 import struct
 import subprocess
 import sys
 import tarfile
-import io
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WORK = os.path.join(ROOT, ".work")
@@ -31,18 +33,54 @@ ASSETS = os.path.join(ROOT, "app", "src", "main", "assets")
 TERMUX_POOL = "https://packages.termux.dev/apt/termux-main/pool/main"
 # proot is built by Termux and is the only thing here that understands
 # Android's seccomp policy and the loader hand-off.
+#
+# The versions are pinned for reproducibility, but Termux removes old package files when it
+# rebuilds. `download` therefore falls back to the newest matching file in the pool, so a routine
+# upstream rebuild cannot break the release pipeline.
 PROOT_PKGS = {
     "arm64-v8a": {
-        "proot": f"{TERMUX_POOL}/p/proot/proot_5.1.107.92_aarch64.deb",
-        "talloc": f"{TERMUX_POOL}/libt/libtalloc/libtalloc_2.4.3_aarch64.deb",
+        "arch": "aarch64",
+        "proot": f"{TERMUX_POOL}/p/proot/proot_5.1.107.102_aarch64.deb",
+        "talloc": f"{TERMUX_POOL}/libt/libtalloc/libtalloc_2.5.0_aarch64.deb",
         "shmem": f"{TERMUX_POOL}/liba/libandroid-shmem/libandroid-shmem_0.7_aarch64.deb",
     },
     "x86_64": {
-        "proot": f"{TERMUX_POOL}/p/proot/proot_5.1.107.92_x86_64.deb",
-        "talloc": f"{TERMUX_POOL}/libt/libtalloc/libtalloc_2.4.3_x86_64.deb",
+        "arch": "x86_64",
+        "proot": f"{TERMUX_POOL}/p/proot/proot_5.1.107.102_x86_64.deb",
+        "talloc": f"{TERMUX_POOL}/libt/libtalloc/libtalloc_2.5.0_x86_64.deb",
         "shmem": f"{TERMUX_POOL}/liba/libandroid-shmem/libandroid-shmem_0.7_x86_64.deb",
     },
 }
+
+TERMUX_DIRS = {
+    "proot": f"{TERMUX_POOL}/p/proot",
+    "talloc": f"{TERMUX_POOL}/libt/libtalloc",
+    "shmem": f"{TERMUX_POOL}/liba/libandroid-shmem",
+}
+
+
+def newest_termux_deb(pool_dir, package, arch):
+    """Returns the newest .deb URL for a Termux package and architecture."""
+    html = subprocess.run(
+        ["curl", "-fsSL", "--retry", "3", pool_dir],
+        capture_output=True, check=True,
+    ).stdout.decode("utf-8", "replace")
+    pattern = re.compile(
+        r'href="(' + re.escape(package) + r'_([^"]+)_' + re.escape(arch) + r'\.deb)"'
+    )
+    found = pattern.findall(html)
+    if not found:
+        raise SystemExit(f"no {package} package for {arch} at {pool_dir}")
+
+    def version_key(item):
+        try:
+            return tuple(int(part) for part in item[1].split("."))
+        except ValueError:
+            return ()
+
+    found.sort(key=version_key)
+    return f"{pool_dir}/{found[-1][0]}"
+
 
 # The official Debian 13 "trixie-slim" rootfs, taken from the debuerreotype artifacts repository
 # (the same tarball the Docker image is built from). Pinned to a commit and a SHA-256 so the
@@ -60,13 +98,24 @@ DEBIAN = {
 }
 
 # Each ABI gets its own asset named after the ABI.
-def download(url, dest):
+def download(url, dest, fallback=None):
     if os.path.isfile(dest) and os.path.getsize(dest) > 0:
         print(f"  cached {os.path.basename(dest)}")
         return dest
     os.makedirs(os.path.dirname(dest), exist_ok=True)
-    print(f"  downloading {url}")
-    subprocess.run(["curl", "-fsSL", "--retry", "3", "-o", dest, url], check=True)
+
+    def fetch(address):
+        print(f"  downloading {address}")
+        return subprocess.run(
+            ["curl", "-fsSL", "--retry", "3", "-o", dest, address], check=False
+        ).returncode
+
+    if fetch(url) != 0:
+        if fallback is None:
+            raise SystemExit(f"could not download {url}")
+        url = fallback()
+        if fetch(url) != 0:
+            raise SystemExit(f"could not download {url}")
     return dest
 
 
@@ -87,7 +136,11 @@ def ar_members(path):
 
 
 def deb_file(deb, wanted):
-    """Returns the bytes of one path inside a .deb's data.tar."""
+    """Returns the bytes of one path inside a .deb's data.tar.
+
+    `wanted` may be a shell-style glob, which keeps the talloc path stable across upstream
+    SONAME bumps such as libtalloc.so.2.4.3 -> libtalloc.so.2.5.0.
+    """
     for name, data in ar_members(deb):
         if name.startswith("data.tar"):
             if name.endswith(".xz"):
@@ -97,9 +150,15 @@ def deb_file(deb, wanted):
                 data = gzip.decompress(data)
             with tarfile.open(fileobj=io.BytesIO(data)) as tf:
                 prefix = "data/data/com.termux/files/usr/"
+                wanted_has_glob = any(ch in wanted for ch in "*?[")
                 for member in tf.getmembers():
                     name = member.name.lstrip("./")
-                    if name == prefix + wanted:
+                    matches = (
+                        fnmatch.fnmatch(name, prefix + wanted)
+                        if wanted_has_glob
+                        else name == prefix + wanted
+                    )
+                    if matches:
                         return tf.extractfile(member).read()
     raise SystemExit(f"{wanted} not found in {deb}")
 
@@ -164,18 +223,28 @@ def patch_needed(path, old, new):
 def stage_native():
     for abi, urls in PROOT_PKGS.items():
         print(f"[{abi}] native")
+        arch = urls["arch"]
         dest = os.path.join(JNI, abi)
         os.makedirs(dest, exist_ok=True)
         cache = os.path.join(WORK, "debs")
-        proot_deb = download(urls["proot"], os.path.join(cache, f"proot-{abi}.deb"))
-        talloc_deb = download(urls["talloc"], os.path.join(cache, f"talloc-{abi}.deb"))
-        shmem_deb = download(urls["shmem"], os.path.join(cache, f"shmem-{abi}.deb"))
+        proot_deb = download(
+            urls["proot"], os.path.join(cache, f"proot-{abi}.deb"),
+            fallback=lambda: newest_termux_deb(TERMUX_DIRS["proot"], "proot", arch),
+        )
+        talloc_deb = download(
+            urls["talloc"], os.path.join(cache, f"talloc-{abi}.deb"),
+            fallback=lambda: newest_termux_deb(TERMUX_DIRS["talloc"], "libtalloc", arch),
+        )
+        shmem_deb = download(
+            urls["shmem"], os.path.join(cache, f"shmem-{abi}.deb"),
+            fallback=lambda: newest_termux_deb(TERMUX_DIRS["shmem"], "libandroid-shmem", arch),
+        )
 
         bins = os.path.join(dest, "libproot.so")
         with open(bins, "wb") as f:
             f.write(deb_file(proot_deb, "bin/proot"))
         with open(os.path.join(dest, "libtalloc.so"), "wb") as f:
-            f.write(deb_file(talloc_deb, "lib/libtalloc.so.2.4.3"))
+            f.write(deb_file(talloc_deb, "lib/libtalloc.so.2*"))
         with open(os.path.join(dest, "libandroid-shmem.so"), "wb") as f:
             f.write(deb_file(shmem_deb, "lib/libandroid-shmem.so"))
         # The loader is statically linked on purpose: it runs before any dynamic

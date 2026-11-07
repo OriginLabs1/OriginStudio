@@ -64,7 +64,8 @@ def data_tar(deb):
                 return gzip.decompress(data)
             if name.endswith(".zst"):
                 # Python 3.14 has zstd in the standard library; older versions need the `zstandard`
-                # package, which is worth avoiding as a build dependency.
+                # package. Some archives omit the frame content size, so stream rather than using
+                # decompress(), which requires it.
                 try:
                     from compression import zstd
                 except ImportError:
@@ -74,6 +75,9 @@ def data_tar(deb):
                         raise SystemExit(
                             "unpacking data.tar.zst needs Python 3.14+ or `pip install zstandard`"
                         )
+                if hasattr(zstd, "ZstdDecompressor"):
+                    with zstd.ZstdDecompressor().stream_reader(io.BytesIO(data)) as reader:
+                        return reader.read()
                 return zstd.decompress(data)
             return data
     raise SystemExit("no data.tar in " + deb)

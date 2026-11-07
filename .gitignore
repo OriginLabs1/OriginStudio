@@ -1,0 +1,35 @@
+# Secrets and machine-local configuration — never commit
+local.properties
+termfold-release.jks
+*.jks
+*.keystore
+.work/
+
+# Staged build inputs fetched by tools/fetch-shell-runtime.py and tools/fetch-ca-bundle.py
+app/src/main/assets/debian-*.bin
+app/src/main/assets/ca-certificates.crt
+
+# Gradle / Android build output
+.gradle/
+.kotlin/
+build/
+app/build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Nested scratch workspace that must never be published from this repo
+origin-agent/
+
+# OS noise
+.DS_Store
+Thumbs.db

@@ -6,6 +6,18 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+// Version metadata is supplied by the release pipeline from the git tag, so a published
+// artifact always matches its tag. Local builds fall back to the checked-in version.
+val originVersionName: String =
+    providers.environmentVariable("ORIGIN_VERSION_NAME").orNull
+        ?: providers.gradleProperty("origin.versionName").orNull
+        ?: "0.0.1"
+val originVersionCode: Int =
+    (
+        providers.environmentVariable("ORIGIN_VERSION_CODE").orNull
+            ?: providers.gradleProperty("origin.versionCode").orNull
+        )?.toIntOrNull() ?: 1
+
 android {
     namespace = "com.oneorigin.studio"
     compileSdk = 36
@@ -18,8 +30,8 @@ android {
         // runs in the untrusted_app domain and execve is denied outright. This is exactly why
         // Termux itself pins targetSdk=28. Without it the bundled PRoot cannot start at all.
         targetSdk = 28
-        versionCode = 1
-        versionName = "0.0.1"
+        versionCode = originVersionCode
+        versionName = originVersionName
     }
 
     androidResources {
@@ -42,7 +54,7 @@ android {
             val local = Properties()
             rootProject.file("local.properties").takeIf { it.isFile }?.inputStream()?.use { stream -> local.load(stream) }
             fun secret(key: String, env: String): String? =
-                local.getProperty(key) ?: System.getenv(env)
+                local.getProperty(key) ?: providers.environmentVariable(env).orNull
 
             val keystore = rootProject.file("termfold-release.jks")
             val storePass = secret("termfold.storePassword", "TERMFOLD_STORE_PASSWORD")
@@ -94,8 +106,8 @@ android {
         disable += "ExpiredTargetSdkVersion"
     }
 
-    // Output APKs carry the app's name rather than the module's: "TermFold-release.apk" instead
-    // of "app-release.apk".
+    // Output APKs carry the app's name rather than the module's: "OriginStudio-release.apk"
+    // instead of "app-release.apk".
     applicationVariants.all {
         outputs.all {
             (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl)

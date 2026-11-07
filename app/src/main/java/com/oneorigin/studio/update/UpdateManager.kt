@@ -34,7 +34,7 @@ import org.json.JSONObject
 object UpdateManager {
 
     private const val TAG = "UpdateManager"
-    private const val REPO = "Bibarud/Origin Studio"
+    private const val REPO = "OriginLabs1/OriginStudio"
     private const val DOWNLOAD_PREFIX = "https://github.com/$REPO/releases/download/"
     private const val PREFS = "updates"
 

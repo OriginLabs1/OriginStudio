@@ -17,15 +17,42 @@ Origin Studio is OneOrigin's flagship development workspace: an Android-first, d
 - **Browser for Testing** - Built-in browser for dev servers and web pages
 - **Project Management** - Open, create, and manage projects seamlessly
 
+## Install
+
+Releases are published by **OriginLabs1** on GitHub:
+
+- **Download:** <https://github.com/OriginLabs1/OriginStudio/releases/latest>
+- **Obtainium:** add `github.com/OriginLabs1/OriginStudio` to [Obtainium](https://github.com/ImranR98/Obtainium) for automatic updates.
+- **Website:** <https://originlabs1.github.io/OriginStudio/>
+
+Every release ships a signed APK, a SHA-256 checksum, the signing certificate fingerprint and a machine-readable release manifest. GitHub Releases is the canonical source; mirrors must point back to it and never re-sign or silently modify an artifact.
+
 ## Requirements
 
-- Android 9+ (API 28+ recommended for full functionality)
+- Android 8.0+ (API 26+), 64-bit ARM (arm64-v8a) or x86_64
 - 4 GB RAM or more (optimized for modest hardware)
-- ~2 GB free storage for Debian environment
+- Several GB of free storage for the Debian environment and developer tools
 
 ## Building
 
-This is an Android application built with Kotlin and Jetpack Compose. See the build.gradle files for details.
+This is an Android application built with Kotlin and Jetpack Compose.
+
+```bash
+# One-time: fetch the bundled Linux runtime and CA bundle
+python3 tools/fetch-shell-runtime.py
+python3 tools/fetch-ca-bundle.py
+
+./gradlew assembleDebug
+```
+
+A signed release build additionally needs the release keystore at `termfold-release.jks` and the `TERMFOLD_STORE_PASSWORD` / `TERMFOLD_KEY_PASSWORD` environment variables. Release versions are supplied by the tag-driven GitHub Actions workflow in `.github/workflows/release.yml`:
+
+```bash
+git tag v0.0.1
+git push origin v0.0.1
+```
+
+See `docs/` for the engineering notes and `THIRD_PARTY_NOTICES.md` for bundled components.
 
 ## License
 
