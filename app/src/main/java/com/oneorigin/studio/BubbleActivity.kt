@@ -8,7 +8,7 @@ import androidx.activity.viewModels
 import com.oneorigin.studio.core.AppViewModel
 import com.oneorigin.studio.notify.AppPresence
 import com.oneorigin.studio.notify.Notifier
-import com.oneorigin.studio.ui.theme.Origin StudioTheme
+import com.oneorigin.studio.ui.theme.OriginStudioTheme
 
 /**
  * The whole app in an Android bubble, floating over whatever the user is doing.
@@ -17,7 +17,7 @@ import com.oneorigin.studio.ui.theme.Origin StudioTheme
  * shells live in the process, not in a window), so the bubble opens on the exact chat or shell
  * the user left and they can still move around the app from there.
  */
-class BubbleActivity : Origin StudioActivity() {
+class BubbleActivity : OriginStudioActivity() {
 
     private val viewModel: AppViewModel by viewModels()
 
@@ -26,8 +26,8 @@ class BubbleActivity : Origin StudioActivity() {
         super.onCreate(savedInstanceState)
         Notifier.placeFrom(intent)?.let(AppPresence::request)
         setContent {
-            Origin StudioTheme {
-                Origin StudioRoot(viewModel)
+            OriginStudioTheme {
+                OriginStudioRoot(viewModel)
             }
         }
     }

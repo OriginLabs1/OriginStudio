@@ -32,14 +32,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.oneorigin.studio.R
 import com.oneorigin.studio.ui.theme.Palette
-import com.oneorigin.studio.ui.theme.Origin StudioIcons
+import com.oneorigin.studio.ui.theme.OriginStudioIcons
 import com.oneorigin.studio.ui.theme.Motion
 
 /** Bottom navigation destinations. */
 enum class NavTab(val icon: ImageVector, val inactiveIcon: ImageVector, val labelRes: Int) {
-    FOLDERS(Origin StudioIcons.Home, Origin StudioIcons.Home, R.string.cd_home),
-    FILES(Origin StudioIcons.Files, Origin StudioIcons.Files, R.string.cd_files),
-    SETTINGS(Origin StudioIcons.Gear, Origin StudioIcons.Gear, R.string.cd_settings),
+    FOLDERS(OriginStudioIcons.Home, OriginStudioIcons.Home, R.string.cd_home),
+    FILES(OriginStudioIcons.Files, OriginStudioIcons.Files, R.string.cd_files),
+    SETTINGS(OriginStudioIcons.Gear, OriginStudioIcons.Gear, R.string.cd_settings),
 }
 
 /** Docked bottom bar for phones: icon over label, the current tab in full white. */

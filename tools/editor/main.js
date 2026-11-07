@@ -1,4 +1,4 @@
-// The file editor inside TermFold: CodeMirror 6 in a WebView.
+// The file editor inside Origin Studio: CodeMirror 6 in a WebView.
 //
 // Kotlin drives it through window.tf (open, save request, settings) and hears back through the
 // `Android` JavaScript interface (ready, dirty state, save with the text, cursor position).

@@ -112,7 +112,7 @@ import com.oneorigin.studio.ui.components.BareIconButton
 import com.oneorigin.studio.ui.components.Markdown
 import com.oneorigin.studio.ui.theme.Mono
 import com.oneorigin.studio.ui.theme.Palette
-import com.oneorigin.studio.ui.theme.Origin StudioIcons
+import com.oneorigin.studio.ui.theme.OriginStudioIcons
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -171,7 +171,7 @@ fun AgentSessionScreen(
                     PanelTitle(stringResource(R.string.acp_agent_unavailable))
                     PanelBody(stringResource(R.string.acp_registry_offline))
                     Spacer(Modifier.height(16.dp))
-                    PillButton(stringResource(R.string.action_retry), Origin StudioIcons.Refresh) { registryAttempt++ }
+                    PillButton(stringResource(R.string.action_retry), OriginStudioIcons.Refresh) { registryAttempt++ }
                 } else {
                     CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp, color = Palette.Accent)
                 }
@@ -263,7 +263,7 @@ fun AgentSessionScreen(
                         PanelBody(stringResource(R.string.acp_auth_methods, state.authMethods.joinToString(", ")))
                     }
                     Spacer(Modifier.height(18.dp))
-                    PillButton(stringResource(R.string.action_retry), Origin StudioIcons.Refresh) { client.start() }
+                    PillButton(stringResource(R.string.action_retry), OriginStudioIcons.Refresh) { client.start() }
                 }
 
                 state.phase == AcpPhase.ERROR -> CenterPanel {
@@ -284,7 +284,7 @@ fun AgentSessionScreen(
                         )
                     }
                     Spacer(Modifier.height(16.dp))
-                    PillButton(stringResource(R.string.action_retry), Origin StudioIcons.Refresh) { client.start() }
+                    PillButton(stringResource(R.string.action_retry), OriginStudioIcons.Refresh) { client.start() }
                 }
 
                 else -> CenterPanel {
@@ -369,7 +369,7 @@ private fun SessionHeader(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             BareIconButton(
-                icon = Origin StudioIcons.Back,
+                icon = OriginStudioIcons.Back,
                 contentDescription = stringResource(R.string.cd_back),
                 onClick = onBack,
             )
@@ -412,7 +412,7 @@ private fun SessionHeader(
             }
             if (onHistory != null) {
                 BareIconButton(
-                    icon = Origin StudioIcons.History,
+                    icon = OriginStudioIcons.History,
                     contentDescription = stringResource(R.string.acp_history),
                     onClick = onHistory,
                     tint = Palette.TextDim,
@@ -421,7 +421,7 @@ private fun SessionHeader(
             }
             if (onRestart != null) {
                 BareIconButton(
-                    icon = Origin StudioIcons.Refresh,
+                    icon = OriginStudioIcons.Refresh,
                     contentDescription = stringResource(R.string.acp_restart),
                     onClick = onRestart,
                     tint = Palette.TextDim,
@@ -634,7 +634,7 @@ private fun Timeline(state: AcpUiState, workspaceDir: String, modifier: Modifier
                     .padding(start = 12.dp, end = 14.dp, top = 8.dp, bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(Origin StudioIcons.ChevronDown, null, tint = Palette.Text, modifier = Modifier.size(16.dp))
+                Icon(OriginStudioIcons.ChevronDown, null, tint = Palette.Text, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(6.dp))
                 Text(
                     stringResource(R.string.acp_jump_latest),
@@ -731,7 +731,7 @@ private fun ImageThumb(image: AcpBlock.Image, size: Int, onRemove: (() -> Unit)?
                     .clickable(onClick = onRemove),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(Origin StudioIcons.Close, stringResource(R.string.acp_remove), tint = Palette.Text, modifier = Modifier.size(12.dp))
+                Icon(OriginStudioIcons.Close, stringResource(R.string.acp_remove), tint = Palette.Text, modifier = Modifier.size(12.dp))
             }
         }
     }
@@ -748,7 +748,7 @@ private fun FileChip(file: AcpBlock.TextFile, onClick: (() -> Unit)? = null, onR
             .padding(start = 10.dp, end = if (onRemove != null) 4.dp else 12.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(Origin StudioIcons.FileText, contentDescription = null, tint = Palette.Accent, modifier = Modifier.size(18.dp))
+        Icon(OriginStudioIcons.FileText, contentDescription = null, tint = Palette.Accent, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(8.dp))
         Column {
             Text(
@@ -766,7 +766,7 @@ private fun FileChip(file: AcpBlock.TextFile, onClick: (() -> Unit)? = null, onR
         if (onRemove != null) {
             Spacer(Modifier.width(2.dp))
             BareIconButton(
-                icon = Origin StudioIcons.Close,
+                icon = OriginStudioIcons.Close,
                 contentDescription = stringResource(R.string.acp_remove),
                 onClick = onRemove,
                 tint = Palette.TextFaint,
@@ -870,7 +870,7 @@ private fun ThoughtRow(item: AcpItem.Thought, live: Boolean) {
             }
             Spacer(Modifier.width(6.dp))
             Icon(
-                imageVector = if (expanded) Origin StudioIcons.ChevronDown else Origin StudioIcons.ChevronRight,
+                imageVector = if (expanded) OriginStudioIcons.ChevronDown else OriginStudioIcons.ChevronRight,
                 contentDescription = null,
                 tint = Palette.TextFaint,
                 modifier = Modifier.size(14.dp),
@@ -936,7 +936,7 @@ private fun ToolCallRow(item: AcpItem.ToolCall, workspaceDir: String) {
             if (hasDetail) {
                 Spacer(Modifier.width(6.dp))
                 Icon(
-                    imageVector = if (open) Origin StudioIcons.ChevronDown else Origin StudioIcons.ChevronRight,
+                    imageVector = if (open) OriginStudioIcons.ChevronDown else OriginStudioIcons.ChevronRight,
                     contentDescription = null,
                     tint = Palette.TextFaint,
                     modifier = Modifier.size(14.dp),
@@ -997,7 +997,7 @@ private fun PlanCard(item: AcpItem.Plan) {
             ) {
                 Box(Modifier.padding(top = 3.dp).size(14.dp), contentAlignment = Alignment.Center) {
                     when (entry.status) {
-                        "completed" -> Icon(Origin StudioIcons.Check, null, tint = Palette.Green, modifier = Modifier.size(14.dp))
+                        "completed" -> Icon(OriginStudioIcons.Check, null, tint = Palette.Green, modifier = Modifier.size(14.dp))
                         "in_progress" -> Box(Modifier.size(8.dp).clip(CircleShape).background(Palette.Accent))
                         else -> Box(Modifier.size(9.dp).clip(CircleShape).border(1.3.dp, Palette.TextFaint, CircleShape))
                     }
@@ -1378,7 +1378,7 @@ private fun Composer(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 BareIconButton(
-                    icon = Origin StudioIcons.Image,
+                    icon = OriginStudioIcons.Image,
                     contentDescription = stringResource(R.string.acp_attach_image),
                     onClick = {
                         pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -1402,7 +1402,7 @@ private fun Composer(
                             .clickable(onClick = onCancel),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Icon(Origin StudioIcons.Stop, stringResource(R.string.acp_stop), tint = Palette.Text, modifier = Modifier.size(16.dp))
+                        Icon(OriginStudioIcons.Stop, stringResource(R.string.acp_stop), tint = Palette.Text, modifier = Modifier.size(16.dp))
                     }
                 }
                 if (!agentBusy || canSend) {
@@ -1416,7 +1416,7 @@ private fun Composer(
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            imageVector = Origin StudioIcons.Send,
+                            imageVector = OriginStudioIcons.Send,
                             contentDescription = stringResource(if (agentBusy) R.string.acp_queue else R.string.cd_send),
                             tint = if (canSend) Palette.OnAccent else Palette.TextFaint,
                             modifier = Modifier.size(18.dp),
@@ -1519,7 +1519,7 @@ private fun QueuedList(
                                 .padding(horizontal = 10.dp, vertical = 8.dp),
                         )
                         BareIconButton(
-                            icon = Origin StudioIcons.Close,
+                            icon = OriginStudioIcons.Close,
                             contentDescription = stringResource(R.string.acp_remove),
                             onClick = { onRemove(item.id) },
                             tint = Palette.TextFaint,
@@ -1610,7 +1610,7 @@ private fun SettingsButton(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                Origin StudioIcons.Sliders,
+                OriginStudioIcons.Sliders,
                 contentDescription = stringResource(R.string.acp_settings),
                 tint = if (open) Palette.Accent else Palette.TextDim,
                 modifier = Modifier.size(18.dp),
@@ -1686,7 +1686,7 @@ private fun SettingsButton(
                                 color = Palette.TextFaint,
                             )
                             Spacer(Modifier.width(6.dp))
-                            Icon(Origin StudioIcons.ChevronRight, null, tint = Palette.TextFaint, modifier = Modifier.size(16.dp))
+                            Icon(OriginStudioIcons.ChevronRight, null, tint = Palette.TextFaint, modifier = Modifier.size(16.dp))
                         }
 
                         else -> {
@@ -1719,7 +1719,7 @@ private fun SettingsButton(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     BareIconButton(
-                        icon = Origin StudioIcons.Back,
+                        icon = OriginStudioIcons.Back,
                         contentDescription = stringResource(R.string.cd_back),
                         onClick = { page = null; query = "" },
                         tint = Palette.TextDim,
@@ -1828,7 +1828,7 @@ private fun SettingsSearchField(query: String, onQuery: (String) -> Unit) {
             .padding(horizontal = 10.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(Origin StudioIcons.Search, contentDescription = null, tint = Palette.TextFaint, modifier = Modifier.size(16.dp))
+        Icon(OriginStudioIcons.Search, contentDescription = null, tint = Palette.TextFaint, modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(8.dp))
         androidx.compose.foundation.text.BasicTextField(
             value = query,
@@ -1852,7 +1852,7 @@ private fun SettingsSearchField(query: String, onQuery: (String) -> Unit) {
         )
         if (query.isNotEmpty()) {
             Icon(
-                Origin StudioIcons.Close,
+                OriginStudioIcons.Close,
                 contentDescription = null,
                 tint = Palette.TextFaint,
                 modifier = Modifier
@@ -1923,7 +1923,7 @@ private fun SettingRow(label: String, description: String, selected: Boolean, on
         }
         if (selected) {
             Spacer(Modifier.width(10.dp))
-            Icon(Origin StudioIcons.Check, contentDescription = null, tint = Palette.Accent, modifier = Modifier.size(16.dp))
+            Icon(OriginStudioIcons.Check, contentDescription = null, tint = Palette.Accent, modifier = Modifier.size(16.dp))
         }
     }
 }
@@ -2031,7 +2031,7 @@ private fun PastSessionsDialog(
                         .padding(horizontal = 14.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(Origin StudioIcons.Plus, null, tint = Palette.Accent, modifier = Modifier.size(16.dp))
+                    Icon(OriginStudioIcons.Plus, null, tint = Palette.Accent, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(10.dp))
                     Text(stringResource(R.string.acp_cmd_new), style = MaterialTheme.typography.labelLarge, color = Palette.Text)
                 }
@@ -2118,7 +2118,7 @@ private fun PastSessionsDialog(
                                     )
                                 } else if (!current) {
                                     BareIconButton(
-                                        icon = Origin StudioIcons.Trash,
+                                        icon = OriginStudioIcons.Trash,
                                         contentDescription = stringResource(R.string.files_delete),
                                         onClick = { confirming = past.sessionId },
                                         tint = Palette.TextFaint,
@@ -2146,7 +2146,7 @@ private fun SessionSearch(query: String, onQuery: (String) -> Unit) {
             .padding(start = 12.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(Origin StudioIcons.Search, null, tint = Palette.TextFaint, modifier = Modifier.size(15.dp))
+        Icon(OriginStudioIcons.Search, null, tint = Palette.TextFaint, modifier = Modifier.size(15.dp))
         Spacer(Modifier.width(8.dp))
         Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
             if (query.isEmpty()) {
@@ -2162,7 +2162,7 @@ private fun SessionSearch(query: String, onQuery: (String) -> Unit) {
             )
         }
         if (query.isNotEmpty()) {
-            BareIconButton(icon = Origin StudioIcons.Close, contentDescription = stringResource(R.string.action_cancel), onClick = { onQuery("") }, tint = Palette.TextFaint, size = 32)
+            BareIconButton(icon = OriginStudioIcons.Close, contentDescription = stringResource(R.string.action_cancel), onClick = { onQuery("") }, tint = Palette.TextFaint, size = 32)
         }
     }
 }
@@ -2188,11 +2188,11 @@ private fun Int.toShortCount(): String =
     if (this >= 1_000) "${"%.1f".format(this / 1_000f)}k" else toString()
 
 private fun toolIcon(kind: String): ImageVector = when (kind) {
-    "read" -> Origin StudioIcons.FileText
-    "edit", "delete", "move" -> Origin StudioIcons.Pencil
-    "search", "fetch" -> Origin StudioIcons.Search
-    "execute", "command" -> Origin StudioIcons.Terminal
-    "think" -> Origin StudioIcons.ChevronRight
-    else -> Origin StudioIcons.Gear
+    "read" -> OriginStudioIcons.FileText
+    "edit", "delete", "move" -> OriginStudioIcons.Pencil
+    "search", "fetch" -> OriginStudioIcons.Search
+    "execute", "command" -> OriginStudioIcons.Terminal
+    "think" -> OriginStudioIcons.ChevronRight
+    else -> OriginStudioIcons.Gear
 }
 

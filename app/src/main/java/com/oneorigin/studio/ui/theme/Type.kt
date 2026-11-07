@@ -27,7 +27,7 @@ val Outfit = FontFamily(
 
 val Mono = FontFamily(Font(R.font.jetbrains_mono, FontWeight.Normal))
 
-val Origin StudioTypography = Typography(
+val OriginStudioTypography = Typography(
     displaySmall = TextStyle(
         fontFamily = Outfit,
         fontWeight = FontWeight.Medium,

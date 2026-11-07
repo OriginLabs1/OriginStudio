@@ -58,7 +58,7 @@ import com.oneorigin.studio.ui.components.RowSpacer
 import com.oneorigin.studio.ui.components.SectionTitle
 import com.oneorigin.studio.ui.theme.Mono
 import com.oneorigin.studio.ui.theme.Palette
-import com.oneorigin.studio.ui.theme.Origin StudioIcons
+import com.oneorigin.studio.ui.theme.OriginStudioIcons
 import com.oneorigin.studio.ui.theme.folderTint
 
 /** Screen 1: the folder list. Uses a card grid when [useGrid] is set (tablet / landscape). */
@@ -126,7 +126,7 @@ fun FoldersScreen(
             )
             if (useGrid) {
                 BareIconButton(
-                    icon = Origin StudioIcons.Search,
+                    icon = OriginStudioIcons.Search,
                     contentDescription = androidx.compose.ui.res.stringResource(R.string.cd_search),
                     onClick = onSearchToggle,
                     tint = if (searchOpen) Palette.Accent else Palette.Text,
@@ -134,7 +134,7 @@ fun FoldersScreen(
                 Spacer(Modifier.size(8.dp))
             }
             com.oneorigin.studio.ui.components.PrimaryButton(
-                icon = Origin StudioIcons.Plus,
+                icon = OriginStudioIcons.Plus,
                 label = androidx.compose.ui.res.stringResource(R.string.project_new),
                 onClick = onAddFolder,
                 compact = !useGrid,
@@ -161,7 +161,7 @@ fun FoldersScreen(
                         leading = {
                             LeadingTile(
                                 tint = folderTint(folder.tint),
-                                icon = Origin StudioIcons.Folder,
+                                icon = OriginStudioIcons.Folder,
                             )
                         },
                         trailing = { CountChevron(folder.sessions.size) },
@@ -209,7 +209,7 @@ private fun FolderCard(folder: Folder, onClick: () -> Unit) {
             .padding(horizontal = 18.dp, vertical = 18.dp),
     ) {
         Icon(
-            imageVector = Origin StudioIcons.Folder,
+            imageVector = OriginStudioIcons.Folder,
             contentDescription = null,
             tint = folderTint(folder.tint),
             modifier = Modifier.size(40.dp),
@@ -253,13 +253,13 @@ private fun HeaderBar(
         Spacer(Modifier.weight(1f))
 
         BareIconButton(
-            icon = Origin StudioIcons.Search,
+            icon = OriginStudioIcons.Search,
             contentDescription = androidx.compose.ui.res.stringResource(R.string.cd_search),
             onClick = onSearchToggle,
             tint = if (searchOpen) Palette.Accent else Palette.Text,
         )
         BareIconButton(
-            icon = Origin StudioIcons.More,
+            icon = OriginStudioIcons.More,
             contentDescription = androidx.compose.ui.res.stringResource(R.string.cd_more),
             onClick = onMore,
         )

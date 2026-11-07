@@ -48,7 +48,7 @@ import androidx.compose.ui.unit.sp
 import com.oneorigin.studio.R
 import com.oneorigin.studio.ui.theme.Mono
 import com.oneorigin.studio.ui.theme.Palette
-import com.oneorigin.studio.ui.theme.Origin StudioIcons
+import com.oneorigin.studio.ui.theme.OriginStudioIcons
 import com.termux.view.TerminalView
 
 /** One occurrence of the search text: a terminal row (negative = scrollback) and column. */
@@ -154,7 +154,7 @@ fun TerminalFindBar(
             .padding(start = 12.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(Origin StudioIcons.Search, null, tint = Palette.TextFaint, modifier = Modifier.size(16.dp))
+        Icon(OriginStudioIcons.Search, null, tint = Palette.TextFaint, modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(10.dp))
         Box(Modifier.weight(1f).padding(vertical = 10.dp)) {
             if (state.text.isEmpty()) {
@@ -194,9 +194,9 @@ fun TerminalFindBar(
             color = if (count == 0 && state.text.isNotEmpty()) Palette.Pink else Palette.TextDim,
             modifier = Modifier.padding(horizontal = 8.dp),
         )
-        FindAction(Origin StudioIcons.ChevronUp, stringResource(R.string.terminal_find_previous), enabled = count > 0, onClick = onPrevious)
-        FindAction(Origin StudioIcons.ChevronDown, stringResource(R.string.terminal_find_next), enabled = count > 0, onClick = onNext)
-        FindAction(Origin StudioIcons.Close, stringResource(R.string.action_close), enabled = true, onClick = onClose)
+        FindAction(OriginStudioIcons.ChevronUp, stringResource(R.string.terminal_find_previous), enabled = count > 0, onClick = onPrevious)
+        FindAction(OriginStudioIcons.ChevronDown, stringResource(R.string.terminal_find_next), enabled = count > 0, onClick = onNext)
+        FindAction(OriginStudioIcons.Close, stringResource(R.string.action_close), enabled = true, onClick = onClose)
     }
 }
 

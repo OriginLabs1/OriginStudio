@@ -65,7 +65,7 @@ import com.oneorigin.studio.R
 import com.oneorigin.studio.files.FileActions
 import com.oneorigin.studio.ui.components.BareIconButton
 import com.oneorigin.studio.ui.theme.Palette
-import com.oneorigin.studio.ui.theme.Origin StudioIcons
+import com.oneorigin.studio.ui.theme.OriginStudioIcons
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -124,7 +124,7 @@ internal fun ImageViewer(file: File, onClose: () -> Unit, modifier: Modifier = M
             Modifier.fillMaxWidth().padding(start = 6.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            BareIconButton(icon = Origin StudioIcons.Close, contentDescription = stringResource(R.string.action_close), onClick = onClose)
+            BareIconButton(icon = OriginStudioIcons.Close, contentDescription = stringResource(R.string.action_close), onClick = onClose)
             Spacer(Modifier.width(4.dp))
             Column(Modifier.weight(1f)) {
                 Text(
@@ -231,7 +231,7 @@ internal fun ImageViewer(file: File, onClose: () -> Unit, modifier: Modifier = M
                         .padding(6.dp),
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
-                    ViewerAction(Origin StudioIcons.ImageCopy, stringResource(R.string.img_copy)) {
+                    ViewerAction(OriginStudioIcons.ImageCopy, stringResource(R.string.img_copy)) {
                         scope.launch {
                             val ok = withContext(Dispatchers.IO) { runCatching { FileActions.copyImage(context, file) }.isSuccess }
                             // Android 13+ confirms clipboard copies itself.
@@ -244,13 +244,13 @@ internal fun ImageViewer(file: File, onClose: () -> Unit, modifier: Modifier = M
                     }
                     // A system picture is only looked at (and copied); sharing is for your own files.
                     if (!readOnly) {
-                        ViewerAction(Origin StudioIcons.Share, stringResource(R.string.fm_share)) {
+                        ViewerAction(OriginStudioIcons.Share, stringResource(R.string.fm_share)) {
                             runCatching { FileActions.share(context, listOf(file)) }.onFailure { message = it.message }
                         }
-                        ViewerAction(Origin StudioIcons.OpenExternal, stringResource(R.string.img_open_with)) {
+                        ViewerAction(OriginStudioIcons.OpenExternal, stringResource(R.string.img_open_with)) {
                             runCatching { FileActions.openWith(context, file) }.onFailure { message = it.message }
                         }
-                        ViewerAction(Origin StudioIcons.SaveToDevice, stringResource(R.string.img_save)) { saveAs.launch(file.name) }
+                        ViewerAction(OriginStudioIcons.SaveToDevice, stringResource(R.string.img_save)) { saveAs.launch(file.name) }
                     }
                 }
             }

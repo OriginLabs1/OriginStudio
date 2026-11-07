@@ -1,6 +1,6 @@
 # Third-party notices
 
-TermFold itself is licensed under the Apache License 2.0 (see [LICENSE](LICENSE)). The app, its
+Origin Studio itself is licensed under the Apache License 2.0 (see [LICENSE](LICENSE)). The app, its
 APK and this repository also contain the following third-party components, each under its own
 license. Where a license requires the corresponding source to be available, it is linked below.
 
@@ -15,7 +15,7 @@ license. Where a license requires the corresponding source to be available, it i
 These are the unmodified Termux builds, taken from the packages at
 `https://packages.termux.dev/apt/termux-main/pool/main` by `tools/fetch-shell-runtime.py`. The only
 change is that `libproot.so`'s `DT_NEEDED` entry for `libtalloc.so.2` is rewritten in place to
-`libtalloc.so` so Android installs it (see the script). TermFold runs PRoot as a separate program;
+`libtalloc.so` so Android installs it (see the script). Origin Studio runs PRoot as a separate program;
 it does not link against it.
 
 ## Bundled data (`app/src/main/assets/`)
@@ -27,7 +27,7 @@ it does not link against it.
 | CodeMirror 6 and its language packages (`editor/editor.js`, built from `tools/editor/`) | MIT | [codemirror.net](https://codemirror.net) |
 | Material Icon Theme file and folder icons (`fileicons/`) | MIT (`fileicons/LICENSE`) | [material-extensions/vscode-material-icon-theme](https://github.com/material-extensions/vscode-material-icon-theme) |
 
-Debian is a registered trademark of Software in the Public Interest, Inc., and Ubuntu of Canonical Ltd. TermFold is not affiliated with or endorsed by
+Debian is a registered trademark of Software in the Public Interest, Inc., and Ubuntu of Canonical Ltd. Origin Studio is not affiliated with or endorsed by
 either.
 
 ## Libraries
@@ -48,7 +48,7 @@ either.
 
 ## Agents
 
-TermFold does not bundle any AI agent. Agents (Claude Code, Codex, Gemini CLI, OpenCode, Cursor,
+Origin Studio does not bundle any AI agent. Agents (Claude Code, Codex, Gemini CLI, OpenCode, Cursor,
 Devin, Pi, omp, Google Antigravity and others) are downloaded from their official sources when you
 first use them, under their own licenses and terms. All product names are trademarks of their
-respective owners; TermFold is not affiliated with any of them.
+respective owners; Origin Studio is not affiliated with any of them.

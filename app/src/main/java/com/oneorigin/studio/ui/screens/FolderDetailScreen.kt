@@ -39,7 +39,7 @@ import com.oneorigin.studio.ui.components.BottomNavSpacer
 import com.oneorigin.studio.ui.components.ListRow
 import com.oneorigin.studio.ui.components.RowSpacer
 import com.oneorigin.studio.ui.theme.Palette
-import com.oneorigin.studio.ui.theme.Origin StudioIcons
+import com.oneorigin.studio.ui.theme.OriginStudioIcons
 import com.oneorigin.studio.ui.theme.folderTint
 
 /** Screen 2: sessions inside one folder. */
@@ -96,7 +96,7 @@ fun FolderDetailScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             BareIconButton(
-                icon = Origin StudioIcons.Back,
+                icon = OriginStudioIcons.Back,
                 contentDescription = stringResource(R.string.cd_back),
                 onClick = onBack,
             )
@@ -104,7 +104,7 @@ fun FolderDetailScreen(
             PreviewButton(com.oneorigin.studio.shell.Projects.guestPath(androidx.compose.ui.platform.LocalContext.current, folder.path))
             FilesButton(open = filesOpen, onClick = onToggleFiles)
             BareIconButton(
-                icon = Origin StudioIcons.More,
+                icon = OriginStudioIcons.More,
                 contentDescription = stringResource(R.string.cd_more),
                 onClick = { onOpenOptions(null) },
             )
@@ -123,7 +123,7 @@ fun FolderDetailScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = Origin StudioIcons.Folder,
+                    imageVector = OriginStudioIcons.Folder,
                     contentDescription = null,
                     tint = folderTint(folder.tint),
                     modifier = Modifier.size(32.dp),
@@ -144,7 +144,7 @@ fun FolderDetailScreen(
             )
 
             com.oneorigin.studio.ui.components.PrimaryButton(
-                icon = Origin StudioIcons.Plus,
+                icon = OriginStudioIcons.Plus,
                 label = stringResource(R.string.new_session_title),
                 onClick = onAddSession,
                 compact = !wide,
@@ -189,7 +189,7 @@ fun FolderDetailScreen(
                             )
                         }
                         BareIconButton(
-                            icon = Origin StudioIcons.More,
+                            icon = OriginStudioIcons.More,
                             contentDescription = stringResource(R.string.cd_more),
                             onClick = { onOpenOptions(session.id) },
                             size = 34,
@@ -214,7 +214,7 @@ private fun SessionMarkCompact() {
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            imageVector = Origin StudioIcons.Terminal,
+            imageVector = OriginStudioIcons.Terminal,
             contentDescription = null,
             tint = Palette.Text,
             modifier = Modifier.size(22.dp),

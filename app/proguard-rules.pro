@@ -17,7 +17,7 @@
 }
 
 # The manifest names this class, and it is instantiated by the platform.
--keep class com.oneorigin.studio.TermFoldApp { *; }
+-keep class com.oneorigin.studio.OriginStudioApp { *; }
 -keep class com.oneorigin.studio.MainActivity { *; }
 
 # The terminal's colour table is a public static that the emulator reads reflectively.

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.TermFold" parent="@android:style/Theme.Material.NoActionBar">
+    <style name="Theme.OriginStudio" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/bg</item>
         <item name="android:colorBackground">@color/bg</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
@@ -11,7 +11,7 @@
     </style>
 
     <!-- The share sheet's destination picker floats over the app it was opened from. -->
-    <style name="Theme.TermFold.Translucent" parent="Theme.TermFold">
+    <style name="Theme.OriginStudio.Translucent" parent="Theme.OriginStudio">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowNoTitle">true</item>

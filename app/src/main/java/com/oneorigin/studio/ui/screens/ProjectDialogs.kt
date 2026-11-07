@@ -43,7 +43,7 @@ import com.oneorigin.studio.R
 import com.oneorigin.studio.core.ProjectJob
 import com.oneorigin.studio.ui.theme.Mono
 import com.oneorigin.studio.ui.theme.Palette
-import com.oneorigin.studio.ui.theme.Origin StudioIcons
+import com.oneorigin.studio.ui.theme.OriginStudioIcons
 
 private enum class ProjectKind { EMPTY, CLONE, IMPORT }
 
@@ -84,9 +84,9 @@ fun NewProjectDialog(
         title = { Text(stringResource(R.string.project_new), color = Palette.Text) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                KindRow(Origin StudioIcons.FolderPlus, stringResource(R.string.project_empty), stringResource(R.string.project_empty_desc), kind == ProjectKind.EMPTY) { kind = ProjectKind.EMPTY }
-                KindRow(Origin StudioIcons.GitBranch, stringResource(R.string.project_clone), stringResource(R.string.project_clone_desc), kind == ProjectKind.CLONE) { kind = ProjectKind.CLONE }
-                KindRow(Origin StudioIcons.FolderImport, stringResource(R.string.project_import), stringResource(R.string.project_import_desc), kind == ProjectKind.IMPORT) { kind = ProjectKind.IMPORT }
+                KindRow(OriginStudioIcons.FolderPlus, stringResource(R.string.project_empty), stringResource(R.string.project_empty_desc), kind == ProjectKind.EMPTY) { kind = ProjectKind.EMPTY }
+                KindRow(OriginStudioIcons.GitBranch, stringResource(R.string.project_clone), stringResource(R.string.project_clone_desc), kind == ProjectKind.CLONE) { kind = ProjectKind.CLONE }
+                KindRow(OriginStudioIcons.FolderImport, stringResource(R.string.project_import), stringResource(R.string.project_import_desc), kind == ProjectKind.IMPORT) { kind = ProjectKind.IMPORT }
                 Spacer(Modifier.height(4.dp))
                 when (kind) {
                     ProjectKind.EMPTY -> Field(name, stringResource(R.string.project_name_hint), focus, submit)

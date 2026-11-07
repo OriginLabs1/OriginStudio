@@ -21,7 +21,7 @@ import java.io.FileNotFoundException
  * Hidden files and folders are never shown or served. Home holds agent sign-ins and keys
  * (~/.claude, ~/.codex, ~/.ssh), and no other app should be able to reach those.
  */
-class Origin StudioDocumentsProvider : DocumentsProvider() {
+class OriginDocumentsProvider : DocumentsProvider() {
 
     private val home: File get() = File(ShellPaths.rootfsDir(context!!), "root")
 

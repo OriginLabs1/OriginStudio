@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
  * Outlined glyphs are stroked rather than filled so a single path set reads correctly at both the
  * 18dp nav size and the 22dp row size without pixel-snapping artifacts.
  */
-object Origin StudioIcons {
+object OriginStudioIcons {
 
     private const val STROKE = 1.75f
 

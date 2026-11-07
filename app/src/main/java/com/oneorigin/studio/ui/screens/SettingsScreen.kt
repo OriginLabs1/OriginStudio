@@ -376,7 +376,7 @@ private fun ThemeSwatch(theme: com.oneorigin.studio.shell.ShellTheme.Theme, sele
             Text(theme.name, style = MaterialTheme.typography.labelLarge, color = Palette.Text, modifier = Modifier.weight(1f))
             if (selected) {
                 androidx.compose.material3.Icon(
-                    com.oneorigin.studio.ui.theme.Origin StudioIcons.Check, null,
+                    com.oneorigin.studio.ui.theme.OriginStudioIcons.Check, null,
                     tint = Palette.Accent, modifier = Modifier.size(16.dp),
                 )
             }

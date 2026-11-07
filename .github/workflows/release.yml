@@ -66,6 +66,12 @@ jobs:
 
           CORE="${VERSION}"
           IFS='.' read -r MAJOR MINOR PATCH <<< "${CORE}"
+          # Two-digit minor and patch keep the encoding unambiguous, so no two versions can
+          # ever produce the same versionCode.
+          if [ "${MINOR}" -gt 99 ] || [ "${PATCH}" -gt 99 ]; then
+            echo "::error::Minor and patch must be 0-99 so versionCode stays unique."
+            exit 1
+          fi
           VERSION_CODE=$((10#${MAJOR} * 10000 + 10#${MINOR} * 100 + 10#${PATCH}))
           if [ "${VERSION_CODE}" -lt 1 ] || [ "${VERSION_CODE}" -gt 2100000000 ]; then
             echo "::error::Computed versionCode ${VERSION_CODE} is outside Android's accepted range."

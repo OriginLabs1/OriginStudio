@@ -45,8 +45,8 @@ import com.oneorigin.studio.shell.Projects
 import com.oneorigin.studio.shell.ShellPaths
 import com.oneorigin.studio.shell.ShellRuntime
 import com.oneorigin.studio.ui.theme.Palette
-import com.oneorigin.studio.ui.theme.Origin StudioIcons
-import com.oneorigin.studio.ui.theme.Origin StudioTheme
+import com.oneorigin.studio.ui.theme.OriginStudioIcons
+import com.oneorigin.studio.ui.theme.OriginStudioTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -87,7 +87,7 @@ class ShareReceiverActivity : ComponentActivity() {
         }
 
         setContent {
-            Origin StudioTheme {
+            OriginStudioTheme {
                 val scope = rememberCoroutineScope()
                 var saving by remember { mutableStateOf(false) }
                 fun saveTo(dir: File) {
@@ -144,9 +144,9 @@ class ShareReceiverActivity : ComponentActivity() {
                         } else {
                             LazyColumn(Modifier.heightIn(max = 420.dp)) {
                                 items(projects, key = { it.absolutePath }) { dir ->
-                                    Destination(dir.name, Origin StudioIcons.Folder) { saveTo(dir) }
+                                    Destination(dir.name, OriginStudioIcons.Folder) { saveTo(dir) }
                                 }
-                                item { Destination(stringResource(R.string.share_home), Origin StudioIcons.Home) { saveTo(home) } }
+                                item { Destination(stringResource(R.string.share_home), OriginStudioIcons.Home) { saveTo(home) } }
                             }
                             TextButton(onClick = { finish() }, modifier = Modifier.align(Alignment.End)) {
                                 Text(stringResource(R.string.action_cancel), color = Palette.TextDim)

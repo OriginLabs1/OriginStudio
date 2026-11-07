@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import com.oneorigin.studio.ui.theme.Mono
 import com.oneorigin.studio.ui.theme.Palette
-import com.oneorigin.studio.ui.theme.Origin StudioIcons
+import com.oneorigin.studio.ui.theme.OriginStudioIcons
 
 /**
  * Renders the Markdown agents write: headings, paragraphs, lists, quotes, rules, fenced code,
@@ -272,7 +272,7 @@ fun CodeBlock(language: String, code: String, modifier: Modifier = Modifier) {
                 modifier = Modifier.weight(1f),
             )
             BareIconButton(
-                icon = Origin StudioIcons.Copy,
+                icon = OriginStudioIcons.Copy,
                 contentDescription = "Copy code",
                 onClick = {
                     scope.launch {

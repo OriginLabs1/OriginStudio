@@ -27,13 +27,13 @@
         android:label="@string/app_name"
         android:enableOnBackInvokedCallback="true"
         android:supportsRtl="true"
-        android:theme="@style/Theme.TermFold">
+        android:theme="@style/Theme.OriginStudio">
 
         <activity
             android:name=".MainActivity"
             android:exported="true"            android:configChanges="orientation|screenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode|density|fontScale"
             android:windowSoftInputMode="adjustResize"
-            android:theme="@style/Theme.TermFold">
+            android:theme="@style/Theme.OriginStudio">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -50,7 +50,7 @@
             android:documentLaunchMode="always"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode|density|fontScale"
             android:windowSoftInputMode="adjustResize"
-            android:theme="@style/Theme.TermFold" />
+            android:theme="@style/Theme.OriginStudio" />
 
         <!-- "Share → TermFold" from any app: any file type, several at once, or text and links. -->
         <activity
@@ -58,7 +58,7 @@
             android:exported="true"
             android:label="@string/share_title"
             android:excludeFromRecents="true"
-            android:theme="@style/Theme.TermFold.Translucent">
+            android:theme="@style/Theme.OriginStudio.Translucent">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />

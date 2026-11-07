@@ -51,7 +51,7 @@ import com.oneorigin.studio.ui.components.BareIconButton
 import com.oneorigin.studio.ui.components.PhysicalKeyboard
 import com.oneorigin.studio.ui.theme.Mono
 import com.oneorigin.studio.ui.theme.Palette
-import com.oneorigin.studio.ui.theme.Origin StudioIcons
+import com.oneorigin.studio.ui.theme.OriginStudioIcons
 
 /**
  * The terminal screen: a real Debian shell rendered in-app.
@@ -287,7 +287,7 @@ private fun TerminalHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         BareIconButton(
-            icon = Origin StudioIcons.Back,
+            icon = OriginStudioIcons.Back,
             contentDescription = stringResource(R.string.cd_back),
             onClick = onBack,
         )
@@ -311,7 +311,7 @@ private fun TerminalHeader(
             )
         }
         HeaderToggle(
-            icon = Origin StudioIcons.Search,
+            icon = OriginStudioIcons.Search,
             label = stringResource(R.string.terminal_find),
             active = findOpen,
             onClick = onToggleFind,

@@ -99,10 +99,10 @@ import com.oneorigin.studio.ui.screens.SettingsScreen
 import com.oneorigin.studio.ui.screens.TerminalScreen
 import com.oneorigin.studio.ui.screens.TextPromptDialog
 import com.oneorigin.studio.ui.theme.Palette
-import com.oneorigin.studio.ui.theme.Origin StudioTheme
+import com.oneorigin.studio.ui.theme.OriginStudioTheme
 import com.oneorigin.studio.ui.theme.Motion
 
-class MainActivity : Origin StudioActivity() {
+class MainActivity : OriginStudioActivity() {
 
     private val viewModel: AppViewModel by viewModels()
 
@@ -115,8 +115,8 @@ class MainActivity : Origin StudioActivity() {
         com.oneorigin.studio.notify.Notifier.placeFrom(intent)?.let(com.oneorigin.studio.notify.AppPresence::request)
 
         setContent {
-            Origin StudioTheme {
-                Origin StudioRoot(viewModel)
+            OriginStudioTheme {
+                OriginStudioRoot(viewModel)
             }
         }
     }
@@ -148,7 +148,7 @@ class MainActivity : Origin StudioActivity() {
  * What every Origin Studio window shares: the physical-keyboard handling. The main window and the
  * bubble both extend it.
  */
-open class Origin StudioActivity : ComponentActivity() {
+open class OriginStudioActivity : ComponentActivity() {
 
     /**
      * The first key typed on a physical keyboard puts the on-screen one away: it is covering the
@@ -212,7 +212,7 @@ private sealed interface OptionsTarget {
 }
 
 @Composable
-internal fun Origin StudioRoot(viewModel: AppViewModel) {
+internal fun OriginStudioRoot(viewModel: AppViewModel) {
     val data by viewModel.folders.collectAsStateWithLifecycle()
     val shell by viewModel.shell.collectAsStateWithLifecycle()
     val context = LocalContext.current

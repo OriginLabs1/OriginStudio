@@ -4,7 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 
-private val Origin StudioColors = darkColorScheme(
+private val OriginStudioColors = darkColorScheme(
     primary = Palette.Accent,
     onPrimary = Palette.OnAccent,
     background = Palette.Bg,
@@ -17,10 +17,10 @@ private val Origin StudioColors = darkColorScheme(
 )
 
 @Composable
-fun Origin StudioTheme(content: @Composable () -> Unit) {
+fun OriginStudioTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = Origin StudioColors,
-        typography = Origin StudioTypography,
+        colorScheme = OriginStudioColors,
+        typography = OriginStudioTypography,
         content = content,
     )
 }

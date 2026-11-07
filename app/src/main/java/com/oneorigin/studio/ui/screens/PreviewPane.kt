@@ -115,7 +115,7 @@ import com.oneorigin.studio.shell.ShellPaths
 import com.oneorigin.studio.ui.components.BareIconButton
 import com.oneorigin.studio.ui.theme.Mono
 import com.oneorigin.studio.ui.theme.Palette
-import com.oneorigin.studio.ui.theme.Origin StudioIcons
+import com.oneorigin.studio.ui.theme.OriginStudioIcons
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -407,10 +407,10 @@ fun PreviewPane(
             Modifier.fillMaxWidth().height(52.dp).padding(start = 4.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            ToolIcon(Origin StudioIcons.Back, stringResource(R.string.cd_back), enabled = canBack) { webView?.goBack() }
-            if (wide) ToolIcon(Origin StudioIcons.Forward, stringResource(R.string.preview_forward), enabled = canForward) { webView?.goForward() }
+            ToolIcon(OriginStudioIcons.Back, stringResource(R.string.cd_back), enabled = canBack) { webView?.goBack() }
+            if (wide) ToolIcon(OriginStudioIcons.Forward, stringResource(R.string.preview_forward), enabled = canForward) { webView?.goForward() }
             ToolIcon(
-                if (progress < 100 && !showStart) Origin StudioIcons.Close else Origin StudioIcons.Refresh,
+                if (progress < 100 && !showStart) OriginStudioIcons.Close else OriginStudioIcons.Refresh,
                 stringResource(if (progress < 100) R.string.acp_stop else R.string.preview_reload),
                 enabled = !showStart,
             ) { if (progress < 100) webView?.stopLoading() else { loadError = null; webView?.reload() } }
@@ -425,7 +425,7 @@ fun PreviewPane(
             )
             if (wide) ViewportButton(viewport) { viewportName = it.name; webView?.let { v -> applyViewport(v); v.reload() } }
             Box {
-                ToolIcon(Origin StudioIcons.Console, stringResource(R.string.preview_console), active = consoleOpen) { consoleOpen = !consoleOpen }
+                ToolIcon(OriginStudioIcons.Console, stringResource(R.string.preview_console), active = consoleOpen) { consoleOpen = !consoleOpen }
                 val errors = console.count { it.level == ConsoleMessage.MessageLevel.ERROR }
                 if (errors > 0) {
                     Box(
@@ -437,7 +437,7 @@ fun PreviewPane(
                 }
             }
             Box {
-                ToolIcon(Origin StudioIcons.More, stringResource(R.string.cd_more)) { menuOpen = true }
+                ToolIcon(OriginStudioIcons.More, stringResource(R.string.cd_more)) { menuOpen = true }
                 DropdownMenu(
                     expanded = menuOpen,
                     onDismissRequest = { menuOpen = false },
@@ -446,7 +446,7 @@ fun PreviewPane(
                 ) {
                     fun act(block: () -> Unit) { menuOpen = false; block() }
                     if (!wide) {
-                        MenuEntry(Origin StudioIcons.Forward, stringResource(R.string.preview_forward)) { act { webView?.goForward() } }
+                        MenuEntry(OriginStudioIcons.Forward, stringResource(R.string.preview_forward)) { act { webView?.goForward() } }
                         Viewport.entries.forEach { mode ->
                             CheckItem(viewportIcon(mode), viewportLabel(mode), viewport == mode) {
                                 act { viewportName = mode.name; webView?.let { v -> applyViewport(v); v.reload() } }
@@ -454,37 +454,37 @@ fun PreviewPane(
                         }
                         HorizontalDivider(color = Palette.Border, modifier = Modifier.padding(vertical = 4.dp))
                     }
-                    MenuEntry(Origin StudioIcons.Camera, stringResource(R.string.preview_screenshot_copy)) { act { screenshot(saveToProject = false) } }
-                    MenuEntry(Origin StudioIcons.SaveToDevice, stringResource(R.string.preview_screenshot_save)) { act { screenshot(saveToProject = true) } }
+                    MenuEntry(OriginStudioIcons.Camera, stringResource(R.string.preview_screenshot_copy)) { act { screenshot(saveToProject = false) } }
+                    MenuEntry(OriginStudioIcons.SaveToDevice, stringResource(R.string.preview_screenshot_save)) { act { screenshot(saveToProject = true) } }
                     HorizontalDivider(color = Palette.Border, modifier = Modifier.padding(vertical = 4.dp))
                     if (currentUrl?.let(Preview::guestPathOf) != null) {
-                        CheckItem(Origin StudioIcons.Refresh, stringResource(R.string.preview_live_reload), liveReload) { act { liveReload = !liveReload } }
+                        CheckItem(OriginStudioIcons.Refresh, stringResource(R.string.preview_live_reload), liveReload) { act { liveReload = !liveReload } }
                     }
-                    MenuEntry(Origin StudioIcons.Refresh, stringResource(R.string.preview_hard_reload)) {
+                    MenuEntry(OriginStudioIcons.Refresh, stringResource(R.string.preview_hard_reload)) {
                         act { webView?.clearCache(true); loadError = null; webView?.reload() }
                     }
                     currentUrl?.takeIf { Preview.guestPathOf(it) == null }?.let { url ->
-                        MenuEntry(Origin StudioIcons.OpenExternal, stringResource(R.string.preview_open_outside)) { act { openOutside(url) } }
+                        MenuEntry(OriginStudioIcons.OpenExternal, stringResource(R.string.preview_open_outside)) { act { openOutside(url) } }
                     }
                     currentUrl?.let { url ->
-                        MenuEntry(Origin StudioIcons.Copy, stringResource(R.string.preview_copy_link)) {
+                        MenuEntry(OriginStudioIcons.Copy, stringResource(R.string.preview_copy_link)) {
                             act { copyText(context, Preview.guestPathOf(url) ?: url) }
                         }
                     }
-                    MenuEntry(Origin StudioIcons.Home, stringResource(R.string.preview_start_page)) {
+                    MenuEntry(OriginStudioIcons.Home, stringResource(R.string.preview_start_page)) {
                         act { currentUrl = null; loadError = null; webView?.loadUrl("about:blank") }
                     }
                 }
             }
             if (onToggleMaximize != null) {
                 ToolIcon(
-                    if (maximized) Origin StudioIcons.Minimize else Origin StudioIcons.Maximize,
+                    if (maximized) OriginStudioIcons.Minimize else OriginStudioIcons.Maximize,
                     stringResource(if (maximized) R.string.preview_side_by_side else R.string.preview_full_screen),
                     onClick = onToggleMaximize,
                 )
             }
-            ToolIcon(Origin StudioIcons.WindowMinimize, stringResource(R.string.preview_minimize), onClick = onMinimize)
-            ToolIcon(Origin StudioIcons.Close, stringResource(R.string.action_close), onClick = onClose)
+            ToolIcon(OriginStudioIcons.WindowMinimize, stringResource(R.string.preview_minimize), onClick = onMinimize)
+            ToolIcon(OriginStudioIcons.Close, stringResource(R.string.action_close), onClick = onClose)
         }
         // Loading progress, a hairline under the toolbar.
         Box(Modifier.fillMaxWidth().height(2.dp).background(Palette.BorderSoft)) {
@@ -740,7 +740,7 @@ private fun AddressBar(url: String?, local: Boolean, onGo: (String) -> Unit, mod
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
-            if (local) Origin StudioIcons.Terminal else Origin StudioIcons.Globe,
+            if (local) OriginStudioIcons.Terminal else OriginStudioIcons.Globe,
             null,
             tint = if (local) Palette.Green else Palette.TextFaint,
             modifier = Modifier.size(14.dp),
@@ -793,9 +793,9 @@ private fun ToolIcon(
 }
 
 private fun viewportIcon(mode: Viewport) = when (mode) {
-    Viewport.FIT -> Origin StudioIcons.DeviceFit
-    Viewport.PHONE -> Origin StudioIcons.DevicePhone
-    Viewport.DESKTOP -> Origin StudioIcons.DeviceDesktop
+    Viewport.FIT -> OriginStudioIcons.DeviceFit
+    Viewport.PHONE -> OriginStudioIcons.DevicePhone
+    Viewport.DESKTOP -> OriginStudioIcons.DeviceDesktop
 }
 
 @Composable
@@ -830,7 +830,7 @@ private fun CheckItem(icon: ImageVector, label: String, checked: Boolean, onClic
     DropdownMenuItem(
         text = { Text(label, color = if (checked) Palette.Text else Palette.TextDim) },
         leadingIcon = { Icon(icon, null, tint = if (checked) Palette.Text else Palette.TextFaint, modifier = Modifier.size(18.dp)) },
-        trailingIcon = { if (checked) Icon(Origin StudioIcons.Check, null, tint = Palette.Accent, modifier = Modifier.size(16.dp)) },
+        trailingIcon = { if (checked) Icon(OriginStudioIcons.Check, null, tint = Palette.Accent, modifier = Modifier.size(16.dp)) },
         onClick = onClick,
     )
 }
@@ -862,7 +862,7 @@ private fun StartPage(projectDir: String?, servers: List<Int>, onOpen: (String) 
                 Text(stringResource(R.string.preview_none_running), style = MaterialTheme.typography.bodySmall, color = Palette.TextFaint)
             }
             servers.forEach { port ->
-                StartRow(Origin StudioIcons.Terminal, "localhost:$port", live = true) { onOpen("http://localhost:$port") }
+                StartRow(OriginStudioIcons.Terminal, "localhost:$port", live = true) { onOpen("http://localhost:$port") }
             }
 
             if (projectDir != null) {
@@ -872,7 +872,7 @@ private fun StartPage(projectDir: String?, servers: List<Int>, onOpen: (String) 
                     Text(stringResource(R.string.preview_no_pages), style = MaterialTheme.typography.bodySmall, color = Palette.TextFaint)
                 }
                 pages.forEach { relative ->
-                    StartRow(Origin StudioIcons.FileText, relative, live = false) {
+                    StartRow(OriginStudioIcons.FileText, relative, live = false) {
                         onOpen(Preview.fileUrl(projectDir.trimEnd('/') + "/" + relative))
                     }
                 }
@@ -968,7 +968,7 @@ private fun ErrorPage(url: String, error: String, servers: List<Int>, onRetry: (
             if (servers.isNotEmpty()) {
                 Spacer(Modifier.height(28.dp))
                 SectionLabel(stringResource(R.string.preview_running))
-                servers.forEach { p -> StartRow(Origin StudioIcons.Terminal, "localhost:$p", live = true) { onOpen("http://localhost:$p") } }
+                servers.forEach { p -> StartRow(OriginStudioIcons.Terminal, "localhost:$p", live = true) { onOpen("http://localhost:$p") } }
             }
         }
     }
@@ -1011,7 +1011,7 @@ private fun ConsolePanel(
                 color = Palette.TextDim,
                 modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onClear).padding(horizontal = 10.dp, vertical = 8.dp),
             )
-            BareIconButton(icon = Origin StudioIcons.Close, contentDescription = stringResource(R.string.action_close), onClick = onClose, tint = Palette.TextFaint, size = 34)
+            BareIconButton(icon = OriginStudioIcons.Close, contentDescription = stringResource(R.string.action_close), onClick = onClose, tint = Palette.TextFaint, size = 34)
         }
         HorizontalDivider(color = Palette.Border)
         if (lines.isEmpty()) {
@@ -1094,7 +1094,7 @@ fun PreviewButton(projectDir: String?) {
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            Origin StudioIcons.Globe,
+            OriginStudioIcons.Globe,
             contentDescription = stringResource(R.string.preview_title),
             tint = if (open) Palette.Accent else Palette.TextDim,
             modifier = Modifier.size(20.dp),
@@ -1204,7 +1204,7 @@ private fun AgentFrame(active: Boolean, paused: Boolean, label: String) {
             if (!paused) {
                 val glow by rememberGlow()
                 Icon(
-                    Origin StudioIcons.Sparkle,
+                    OriginStudioIcons.Sparkle,
                     contentDescription = null,
                     tint = Palette.OnAccent,
                     modifier = Modifier.size(16.dp).graphicsLayer {
@@ -1270,7 +1270,7 @@ fun PreviewPill(modifier: Modifier = Modifier) {
             if (working) {
                 androidx.compose.material3.CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp, color = Palette.Accent)
             } else {
-                Icon(Origin StudioIcons.Globe, null, tint = Palette.TextDim, modifier = Modifier.size(17.dp))
+                Icon(OriginStudioIcons.Globe, null, tint = Palette.TextDim, modifier = Modifier.size(17.dp))
             }
         }
         Spacer(Modifier.width(10.dp))
@@ -1289,7 +1289,7 @@ fun PreviewPill(modifier: Modifier = Modifier) {
             )
         }
         BareIconButton(
-            icon = Origin StudioIcons.Close,
+            icon = OriginStudioIcons.Close,
             contentDescription = stringResource(R.string.action_close),
             onClick = { Preview.close() },
             tint = Palette.TextFaint,

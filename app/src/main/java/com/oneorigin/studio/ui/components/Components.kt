@@ -139,7 +139,7 @@ fun CountChevron(count: Int) {
             color = Palette.TextDim,
         )
         Icon(
-            imageVector = com.oneorigin.studio.ui.theme.Origin StudioIcons.ChevronRight,
+            imageVector = com.oneorigin.studio.ui.theme.OriginStudioIcons.ChevronRight,
             contentDescription = null,
             tint = Palette.TextFaint,
             modifier = Modifier.size(20.dp),

@@ -105,7 +105,7 @@ import com.oneorigin.studio.ui.components.AgentIconLoader
 import com.oneorigin.studio.ui.components.BareIconButton
 import com.oneorigin.studio.ui.theme.Mono
 import com.oneorigin.studio.ui.theme.Palette
-import com.oneorigin.studio.ui.theme.Origin StudioIcons
+import com.oneorigin.studio.ui.theme.OriginStudioIcons
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -309,34 +309,34 @@ fun FileManagerScreen(wide: Boolean, modifier: Modifier = Modifier, startGuestPa
             val f = item.file
             fun act(block: () -> Unit) { menuFor = null; block() }
             if (com.oneorigin.studio.preview.Preview.canPreview(f)) {
-                MenuEntry(Origin StudioIcons.Globe, stringResource(R.string.preview_title)) {
+                MenuEntry(OriginStudioIcons.Globe, stringResource(R.string.preview_title)) {
                     act { com.oneorigin.studio.preview.Preview.openFile(context, f) }
                 }
             }
             if (!isUser(f)) {
                 // A system file: look, take its path, or copy it into Home to work on.
-                if (!item.isDir && FileActions.isImage(f)) MenuEntry(Origin StudioIcons.ImageCopy, stringResource(R.string.img_copy)) { act { copyImage(f) } }
-                MenuEntry(Origin StudioIcons.Terminal, stringResource(R.string.fm_copy_path)) { act { copyPath(f) } }
-                MenuEntry(Origin StudioIcons.Copy, stringResource(R.string.action_copy)) { act { clip = Clip(listOf(f), cut = false) } }
+                if (!item.isDir && FileActions.isImage(f)) MenuEntry(OriginStudioIcons.ImageCopy, stringResource(R.string.img_copy)) { act { copyImage(f) } }
+                MenuEntry(OriginStudioIcons.Terminal, stringResource(R.string.fm_copy_path)) { act { copyPath(f) } }
+                MenuEntry(OriginStudioIcons.Copy, stringResource(R.string.action_copy)) { act { clip = Clip(listOf(f), cut = false) } }
                 return@DropdownMenu
             }
             if (!item.isDir) {
-                if (FileActions.isImage(f)) MenuEntry(Origin StudioIcons.ImageCopy, stringResource(R.string.img_copy)) { act { copyImage(f) } }
-                MenuEntry(Origin StudioIcons.OpenExternal, stringResource(R.string.fm_open_with)) {
+                if (FileActions.isImage(f)) MenuEntry(OriginStudioIcons.ImageCopy, stringResource(R.string.img_copy)) { act { copyImage(f) } }
+                MenuEntry(OriginStudioIcons.OpenExternal, stringResource(R.string.fm_open_with)) {
                     act { runCatching { FileActions.openWith(context, f) }.onFailure { message = it.message } }
                 }
             }
-            MenuEntry(Origin StudioIcons.Share, stringResource(R.string.fm_share)) { act { share(listOf(f)) } }
-            MenuEntry(Origin StudioIcons.FolderExport, stringResource(R.string.fm_export)) { act { exportTo(listOf(f)) } }
-            MenuEntry(Origin StudioIcons.SaveToDevice, stringResource(if (item.isDir) R.string.fm_save_zip else R.string.fm_save_device)) { act { saveToDevice(f) } }
-            MenuEntry(Origin StudioIcons.Terminal, stringResource(R.string.fm_copy_path)) { act { copyPath(f) } }
+            MenuEntry(OriginStudioIcons.Share, stringResource(R.string.fm_share)) { act { share(listOf(f)) } }
+            MenuEntry(OriginStudioIcons.FolderExport, stringResource(R.string.fm_export)) { act { exportTo(listOf(f)) } }
+            MenuEntry(OriginStudioIcons.SaveToDevice, stringResource(if (item.isDir) R.string.fm_save_zip else R.string.fm_save_device)) { act { saveToDevice(f) } }
+            MenuEntry(OriginStudioIcons.Terminal, stringResource(R.string.fm_copy_path)) { act { copyPath(f) } }
             HorizontalDivider(color = Palette.Border, modifier = Modifier.padding(vertical = 4.dp))
-            MenuEntry(Origin StudioIcons.Pencil, stringResource(R.string.files_rename)) { act { opError = null; naming = Naming.Rename(f) } }
-            MenuEntry(Origin StudioIcons.Copy, stringResource(R.string.action_copy)) { act { clip = Clip(listOf(f), cut = false) } }
-            MenuEntry(Origin StudioIcons.MoveTo, stringResource(R.string.fm_cut)) { act { clip = Clip(listOf(f), cut = true) } }
+            MenuEntry(OriginStudioIcons.Pencil, stringResource(R.string.files_rename)) { act { opError = null; naming = Naming.Rename(f) } }
+            MenuEntry(OriginStudioIcons.Copy, stringResource(R.string.action_copy)) { act { clip = Clip(listOf(f), cut = false) } }
+            MenuEntry(OriginStudioIcons.MoveTo, stringResource(R.string.fm_cut)) { act { clip = Clip(listOf(f), cut = true) } }
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.files_delete), color = Palette.Pink) },
-                leadingIcon = { Icon(Origin StudioIcons.Trash, null, tint = Palette.Pink, modifier = Modifier.size(18.dp)) },
+                leadingIcon = { Icon(OriginStudioIcons.Trash, null, tint = Palette.Pink, modifier = Modifier.size(18.dp)) },
                 onClick = { act { confirmDelete = listOf(f) } },
             )
         }
@@ -649,7 +649,7 @@ private fun Header(
                 enter = fadeIn(Motion.standard()) + expandHorizontally(Motion.standard()),
                 exit = fadeOut(Motion.quick()) + shrinkHorizontally(Motion.quick()),
             ) {
-                BareIconButton(icon = Origin StudioIcons.Back, contentDescription = stringResource(R.string.fm_up), onClick = onUp)
+                BareIconButton(icon = OriginStudioIcons.Back, contentDescription = stringResource(R.string.fm_up), onClick = onUp)
             }
             // The title: on a phone it opens the places menu (the tablet has the pane).
             Box(Modifier.weight(1f)) {
@@ -675,7 +675,7 @@ private fun Header(
                     }
                     if (!wide) {
                         Spacer(Modifier.width(4.dp))
-                        Icon(Origin StudioIcons.ChevronDown, null, tint = Palette.TextFaint, modifier = Modifier.size(16.dp))
+                        Icon(OriginStudioIcons.ChevronDown, null, tint = Palette.TextFaint, modifier = Modifier.size(16.dp))
                     }
                     androidx.compose.animation.AnimatedVisibility(
                         visible = readOnly,
@@ -701,11 +701,11 @@ private fun Header(
                     containerColor = Palette.Card,
                     shape = RoundedCornerShape(14.dp),
                 ) {
-                    MenuEntry(Origin StudioIcons.Home, stringResource(R.string.fm_home)) { placesMenu = false; onGo(HOME) }
+                    MenuEntry(OriginStudioIcons.Home, stringResource(R.string.fm_home)) { placesMenu = false; onGo(HOME) }
                     projects.forEach { name ->
-                        MenuEntry(Origin StudioIcons.Folder, name) { placesMenu = false; onGo(Projects.GUEST_DIR + "/" + name) }
+                        MenuEntry(OriginStudioIcons.Folder, name) { placesMenu = false; onGo(Projects.GUEST_DIR + "/" + name) }
                     }
-                    MenuEntry(Origin StudioIcons.Terminal, stringResource(R.string.fm_system)) { placesMenu = false; onGo("/") }
+                    MenuEntry(OriginStudioIcons.Terminal, stringResource(R.string.fm_system)) { placesMenu = false; onGo("/") }
                 }
             }
 
@@ -713,34 +713,34 @@ private fun Header(
                 SearchBox(query = query, onQuery = onQuery, autoFocus = false, modifier = Modifier.width(260.dp))
                 Spacer(Modifier.width(6.dp))
             } else {
-                HeaderIcon(if (searchOpen) Origin StudioIcons.Close else Origin StudioIcons.Search, stringResource(R.string.cd_search), active = searchOpen, onClick = onSearchToggle)
+                HeaderIcon(if (searchOpen) OriginStudioIcons.Close else OriginStudioIcons.Search, stringResource(R.string.cd_search), active = searchOpen, onClick = onSearchToggle)
             }
             if (!readOnly) Box {
-                HeaderIcon(Origin StudioIcons.Upload, stringResource(R.string.fm_upload)) { uploadMenu = true }
+                HeaderIcon(OriginStudioIcons.Upload, stringResource(R.string.fm_upload)) { uploadMenu = true }
                 DropdownMenu(
                     expanded = uploadMenu,
                     onDismissRequest = { uploadMenu = false },
                     containerColor = Palette.Card,
                     shape = RoundedCornerShape(14.dp),
                 ) {
-                    MenuEntry(Origin StudioIcons.FileText, stringResource(R.string.fm_upload_files)) { uploadMenu = false; onUploadFiles() }
-                    MenuEntry(Origin StudioIcons.FolderImport, stringResource(R.string.fm_upload_folder)) { uploadMenu = false; onUploadFolder() }
+                    MenuEntry(OriginStudioIcons.FileText, stringResource(R.string.fm_upload_files)) { uploadMenu = false; onUploadFiles() }
+                    MenuEntry(OriginStudioIcons.FolderImport, stringResource(R.string.fm_upload_folder)) { uploadMenu = false; onUploadFolder() }
                 }
             }
             if (!readOnly) Box {
-                HeaderIcon(Origin StudioIcons.Plus, stringResource(R.string.fm_new)) { newMenu = true }
+                HeaderIcon(OriginStudioIcons.Plus, stringResource(R.string.fm_new)) { newMenu = true }
                 DropdownMenu(
                     expanded = newMenu,
                     onDismissRequest = { newMenu = false },
                     containerColor = Palette.Card,
                     shape = RoundedCornerShape(14.dp),
                 ) {
-                    MenuEntry(Origin StudioIcons.FilePlus, stringResource(R.string.files_new_file)) { newMenu = false; onNewFile() }
-                    MenuEntry(Origin StudioIcons.FolderPlus, stringResource(R.string.files_new_folder)) { newMenu = false; onNewFolder() }
+                    MenuEntry(OriginStudioIcons.FilePlus, stringResource(R.string.files_new_file)) { newMenu = false; onNewFile() }
+                    MenuEntry(OriginStudioIcons.FolderPlus, stringResource(R.string.files_new_folder)) { newMenu = false; onNewFolder() }
                 }
             }
             Box {
-                HeaderIcon(Origin StudioIcons.Sliders, stringResource(R.string.fm_view)) { viewMenu = true }
+                HeaderIcon(OriginStudioIcons.Sliders, stringResource(R.string.fm_view)) { viewMenu = true }
                 DropdownMenu(
                     expanded = viewMenu,
                     onDismissRequest = { viewMenu = false },
@@ -753,10 +753,10 @@ private fun Header(
                     CheckEntry(stringResource(R.string.fm_sort_size), sort == SortBy.SIZE) { onSort(SortBy.SIZE) }
                     HorizontalDivider(color = Palette.Border, modifier = Modifier.padding(vertical = 4.dp))
                     MenuLabel(stringResource(R.string.fm_view))
-                    CheckEntry(stringResource(R.string.fm_view_list), !grid, Origin StudioIcons.ListView) { onGrid(false) }
-                    CheckEntry(stringResource(R.string.fm_view_grid), grid, Origin StudioIcons.Grid) { onGrid(true) }
+                    CheckEntry(stringResource(R.string.fm_view_list), !grid, OriginStudioIcons.ListView) { onGrid(false) }
+                    CheckEntry(stringResource(R.string.fm_view_grid), grid, OriginStudioIcons.Grid) { onGrid(true) }
                     HorizontalDivider(color = Palette.Border, modifier = Modifier.padding(vertical = 4.dp))
-                    CheckEntry(stringResource(R.string.fm_hidden), showHidden, if (showHidden) Origin StudioIcons.Eye else Origin StudioIcons.EyeOff) { onShowHidden(!showHidden) }
+                    CheckEntry(stringResource(R.string.fm_hidden), showHidden, if (showHidden) OriginStudioIcons.Eye else OriginStudioIcons.EyeOff) { onShowHidden(!showHidden) }
                 }
             }
         }
@@ -796,7 +796,7 @@ private fun Header(
                     .padding(start = 14.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(if (c.cut) Origin StudioIcons.MoveTo else Origin StudioIcons.Copy, null, tint = Palette.TextDim, modifier = Modifier.size(16.dp))
+                Icon(if (c.cut) OriginStudioIcons.MoveTo else OriginStudioIcons.Copy, null, tint = Palette.TextDim, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(10.dp))
                 Text(
                     pluralStringResource(if (c.cut) R.plurals.fm_clip_cut else R.plurals.fm_clip_copied, c.files.size),
@@ -815,7 +815,7 @@ private fun Header(
                         .clickable(enabled = !readOnly, onClick = onPaste)
                         .padding(horizontal = 10.dp, vertical = 7.dp),
                 )
-                BareIconButton(icon = Origin StudioIcons.Close, contentDescription = stringResource(R.string.action_cancel), onClick = onClearClip, tint = Palette.TextFaint, size = 34)
+                BareIconButton(icon = OriginStudioIcons.Close, contentDescription = stringResource(R.string.action_cancel), onClick = onClearClip, tint = Palette.TextFaint, size = 34)
             }
         }
         Spacer(Modifier.height(4.dp))
@@ -852,7 +852,7 @@ private fun SelectionBar(
             .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        BareIconButton(icon = Origin StudioIcons.Close, contentDescription = stringResource(R.string.action_cancel), onClick = onClose)
+        BareIconButton(icon = OriginStudioIcons.Close, contentDescription = stringResource(R.string.action_cancel), onClick = onClose)
         AnimatedContent(targetState = count, label = "count", transitionSpec = {
             (slideInVertically(Motion.standard()) { if (targetState > initialState) it else -it } + fadeIn(Motion.standard())) togetherWith
                 (slideOutVertically(Motion.quick()) { if (targetState > initialState) -it else it } + fadeOut(Motion.quick()))
@@ -866,25 +866,25 @@ private fun SelectionBar(
         }
         Spacer(Modifier.weight(1f))
         // System files can only be copied (into Home) from here.
-        if (wide || readOnly) HeaderIcon(Origin StudioIcons.Check, stringResource(R.string.fm_select_all), onClick = onSelectAll)
-        HeaderIcon(Origin StudioIcons.Copy, stringResource(R.string.action_copy), onClick = onCopy)
+        if (wide || readOnly) HeaderIcon(OriginStudioIcons.Check, stringResource(R.string.fm_select_all), onClick = onSelectAll)
+        HeaderIcon(OriginStudioIcons.Copy, stringResource(R.string.action_copy), onClick = onCopy)
         if (!readOnly) {
-            HeaderIcon(Origin StudioIcons.MoveTo, stringResource(R.string.fm_cut), onClick = onCut)
-            HeaderIcon(Origin StudioIcons.Share, stringResource(R.string.fm_share), onClick = onShare)
-            if (wide) HeaderIcon(Origin StudioIcons.FolderExport, stringResource(R.string.fm_export), onClick = onExport)
-            HeaderIcon(Origin StudioIcons.Trash, stringResource(R.string.files_delete), danger = true, onClick = onDelete)
+            HeaderIcon(OriginStudioIcons.MoveTo, stringResource(R.string.fm_cut), onClick = onCut)
+            HeaderIcon(OriginStudioIcons.Share, stringResource(R.string.fm_share), onClick = onShare)
+            if (wide) HeaderIcon(OriginStudioIcons.FolderExport, stringResource(R.string.fm_export), onClick = onExport)
+            HeaderIcon(OriginStudioIcons.Trash, stringResource(R.string.files_delete), danger = true, onClick = onDelete)
         }
         if (!wide && !readOnly) {
             Box {
-                HeaderIcon(Origin StudioIcons.More, stringResource(R.string.cd_more)) { more = true }
+                HeaderIcon(OriginStudioIcons.More, stringResource(R.string.cd_more)) { more = true }
                 DropdownMenu(
                     expanded = more,
                     onDismissRequest = { more = false },
                     containerColor = Palette.Card,
                     shape = RoundedCornerShape(14.dp),
                 ) {
-                    MenuEntry(Origin StudioIcons.Check, stringResource(R.string.fm_select_all)) { more = false; onSelectAll() }
-                    MenuEntry(Origin StudioIcons.FolderExport, stringResource(R.string.fm_export)) { more = false; onExport() }
+                    MenuEntry(OriginStudioIcons.Check, stringResource(R.string.fm_select_all)) { more = false; onSelectAll() }
+                    MenuEntry(OriginStudioIcons.FolderExport, stringResource(R.string.fm_export)) { more = false; onExport() }
                 }
             }
         }
@@ -935,7 +935,7 @@ private fun CheckEntry(label: String, checked: Boolean, icon: ImageVector? = nul
         leadingIcon = icon?.let { { Icon(it, null, tint = if (checked) Palette.Text else Palette.TextFaint, modifier = Modifier.size(18.dp)) } },
         trailingIcon = {
             AnimatedVisibility(visible = checked, enter = scaleIn(Motion.standard(), initialScale = 0.9f) + fadeIn(Motion.standard()), exit = scaleOut(Motion.quick(), targetScale = 0.9f) + fadeOut(Motion.quick())) {
-                Icon(Origin StudioIcons.Check, null, tint = Palette.Accent, modifier = Modifier.size(16.dp))
+                Icon(OriginStudioIcons.Check, null, tint = Palette.Accent, modifier = Modifier.size(16.dp))
             }
         },
         onClick = onClick,
@@ -954,7 +954,7 @@ private fun SearchBox(query: String, onQuery: (String) -> Unit, autoFocus: Boole
             .padding(start = 12.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(Origin StudioIcons.Search, null, tint = Palette.TextFaint, modifier = Modifier.size(16.dp))
+        Icon(OriginStudioIcons.Search, null, tint = Palette.TextFaint, modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(8.dp))
         Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
             if (query.isEmpty()) {
@@ -971,7 +971,7 @@ private fun SearchBox(query: String, onQuery: (String) -> Unit, autoFocus: Boole
             )
         }
         AnimatedVisibility(visible = query.isNotEmpty(), enter = fadeIn(Motion.standard()) + scaleIn(Motion.standard(), initialScale = 0.9f), exit = fadeOut(Motion.quick()) + scaleOut(Motion.quick(), targetScale = 0.9f)) {
-            BareIconButton(icon = Origin StudioIcons.Close, contentDescription = stringResource(R.string.action_cancel), onClick = { onQuery("") }, tint = Palette.TextFaint, size = 32)
+            BareIconButton(icon = OriginStudioIcons.Close, contentDescription = stringResource(R.string.action_cancel), onClick = { onQuery("") }, tint = Palette.TextFaint, size = 32)
         }
     }
 }
@@ -1033,8 +1033,8 @@ private fun PlacesPane(cwd: String, projects: List<String>, onGo: (String) -> Un
             cwd.startsWith("$HOME/") -> HOME
             else -> "/"
         }
-        PlaceRow(Origin StudioIcons.Home, stringResource(R.string.fm_home), active == HOME) { onGo(HOME) }
-        PlaceRow(Origin StudioIcons.Terminal, stringResource(R.string.fm_system), active == "/") { onGo("/") }
+        PlaceRow(OriginStudioIcons.Home, stringResource(R.string.fm_home), active == HOME) { onGo(HOME) }
+        PlaceRow(OriginStudioIcons.Terminal, stringResource(R.string.fm_system), active == "/") { onGo("/") }
         Spacer(Modifier.height(18.dp))
         Text(
             stringResource(R.string.folders_title).uppercase(),
@@ -1052,7 +1052,7 @@ private fun PlacesPane(cwd: String, projects: List<String>, onGo: (String) -> Un
         }
         projects.forEach { name ->
             val path = Projects.GUEST_DIR + "/" + name
-            PlaceRow(Origin StudioIcons.Folder, name, active == path) { onGo(path) }
+            PlaceRow(OriginStudioIcons.Folder, name, active == path) { onGo(path) }
         }
     }
 }
@@ -1108,12 +1108,12 @@ private fun FolderListing(
             CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = Palette.Accent)
         }
         !readable -> Empty(
-            icon = Origin StudioIcons.Folder,
+            icon = OriginStudioIcons.Folder,
             title = stringResource(R.string.fm_unreadable),
             hint = stringResource(R.string.fm_unreadable_hint),
         )
         list.isEmpty() -> Empty(
-            icon = Origin StudioIcons.Folder,
+            icon = OriginStudioIcons.Folder,
             title = stringResource(R.string.files_empty),
             hint = stringResource(if (readOnly) R.string.fm_system_hint else R.string.fm_empty_hint),
         )
@@ -1160,7 +1160,7 @@ private fun SearchResults(
             CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = Palette.Accent)
         }
         list.isEmpty() -> Empty(
-            icon = Origin StudioIcons.Search,
+            icon = OriginStudioIcons.Search,
             title = stringResource(R.string.fm_no_results, query),
             hint = stringResource(R.string.fm_search_scope),
         )
@@ -1246,7 +1246,7 @@ private fun ItemRow(
                 ) { (idle, sel) ->
                     when {
                         idle -> BareIconButton(
-                            icon = Origin StudioIcons.More,
+                            icon = OriginStudioIcons.More,
                             contentDescription = stringResource(R.string.cd_more),
                             onClick = { actions.onMenu(item) },
                             tint = Palette.TextFaint,
@@ -1312,7 +1312,7 @@ private fun Tile(item: Item, actions: ItemActions, modifier: Modifier = Modifier
                     .clickable { actions.onMenu(item) },
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(Origin StudioIcons.More, stringResource(R.string.cd_more), tint = Palette.TextDim, modifier = Modifier.size(16.dp))
+                Icon(OriginStudioIcons.More, stringResource(R.string.cd_more), tint = Palette.TextDim, modifier = Modifier.size(16.dp))
             }
         }
     }
@@ -1330,7 +1330,7 @@ private fun SelectMark(selected: Boolean) {
         contentAlignment = Alignment.Center,
     ) {
         AnimatedVisibility(visible = selected, enter = scaleIn(Motion.standard(), initialScale = 0.9f) + fadeIn(Motion.standard()), exit = scaleOut(Motion.quick(), targetScale = 0.9f) + fadeOut(Motion.quick())) {
-            Icon(Origin StudioIcons.Check, null, tint = Palette.OnAccent, modifier = Modifier.size(14.dp))
+            Icon(OriginStudioIcons.Check, null, tint = Palette.OnAccent, modifier = Modifier.size(14.dp))
         }
     }
 }

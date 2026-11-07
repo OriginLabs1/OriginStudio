@@ -72,7 +72,7 @@ import com.oneorigin.studio.core.Folder
 import com.oneorigin.studio.ui.components.BareIconButton
 import com.oneorigin.studio.ui.theme.Mono
 import com.oneorigin.studio.ui.theme.Palette
-import com.oneorigin.studio.ui.theme.Origin StudioIcons
+import com.oneorigin.studio.ui.theme.OriginStudioIcons
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -482,21 +482,21 @@ private fun FileTree(
             }
             if (root != null) {
                 BareIconButton(
-                    icon = Origin StudioIcons.Upload,
+                    icon = OriginStudioIcons.Upload,
                     contentDescription = stringResource(R.string.fm_upload),
                     onClick = { uploadTo(root) },
                     tint = Palette.TextDim,
                     size = 36,
                 )
                 BareIconButton(
-                    icon = Origin StudioIcons.FilePlus,
+                    icon = OriginStudioIcons.FilePlus,
                     contentDescription = stringResource(R.string.files_new_file),
                     onClick = { opError = null; naming = Naming.NewFile(root) },
                     tint = Palette.TextDim,
                     size = 36,
                 )
                 BareIconButton(
-                    icon = Origin StudioIcons.FolderPlus,
+                    icon = OriginStudioIcons.FolderPlus,
                     contentDescription = stringResource(R.string.files_new_folder),
                     onClick = { opError = null; naming = Naming.NewFolder(root) },
                     tint = Palette.TextDim,
@@ -504,14 +504,14 @@ private fun FileTree(
                 )
             }
             BareIconButton(
-                icon = Origin StudioIcons.Refresh,
+                icon = OriginStudioIcons.Refresh,
                 contentDescription = stringResource(R.string.files_refresh),
                 onClick = { refreshTick++ },
                 tint = Palette.TextDim,
                 size = 36,
             )
             BareIconButton(
-                icon = Origin StudioIcons.Close,
+                icon = OriginStudioIcons.Close,
                 contentDescription = stringResource(R.string.action_close),
                 onClick = onClose,
                 tint = Palette.TextDim,
@@ -782,7 +782,7 @@ private fun MoveDialog(root: File, target: File, error: String?, onPick: (File) 
                                     .padding(start = (8 + depth * 14).dp, end = 8.dp, top = 9.dp, bottom = 9.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Icon(Origin StudioIcons.Folder, null, tint = if (here) Palette.TextFaint else Palette.Accent, modifier = Modifier.size(16.dp))
+                                Icon(OriginStudioIcons.Folder, null, tint = if (here) Palette.TextFaint else Palette.Accent, modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(10.dp))
                                 Text(
                                     if (depth == 0) stringResource(R.string.files_move_root, root.name) else dir.name,
@@ -889,7 +889,7 @@ private fun TreeRowView(
             when {
                 loading -> CircularProgressIndicator(Modifier.size(10.dp), strokeWidth = 1.5.dp, color = Palette.TextFaint)
                 row.isDir -> Icon(
-                    if (open) Origin StudioIcons.ChevronDown else Origin StudioIcons.ChevronRight,
+                    if (open) OriginStudioIcons.ChevronDown else OriginStudioIcons.ChevronRight,
                     null,
                     tint = Palette.TextFaint,
                     modifier = Modifier.size(12.dp),
@@ -920,25 +920,25 @@ private fun TreeRowView(
     ) {
         if (com.oneorigin.studio.preview.Preview.canPreview(row.file)) {
             val context = androidx.compose.ui.platform.LocalContext.current
-            MenuEntry(Origin StudioIcons.Globe, stringResource(R.string.preview_title)) {
+            MenuEntry(OriginStudioIcons.Globe, stringResource(R.string.preview_title)) {
                 onDismissMenu()
                 com.oneorigin.studio.preview.Preview.openFile(context, row.file)
             }
         }
         if (row.isDir) {
-            MenuEntry(Origin StudioIcons.Upload, stringResource(R.string.files_upload_here), onUploadHere)
+            MenuEntry(OriginStudioIcons.Upload, stringResource(R.string.files_upload_here), onUploadHere)
         } else {
-            MenuEntry(Origin StudioIcons.Share, stringResource(R.string.fm_share), onShare)
-            MenuEntry(Origin StudioIcons.OpenExternal, stringResource(R.string.fm_open_with), onOpenWith)
+            MenuEntry(OriginStudioIcons.Share, stringResource(R.string.fm_share), onShare)
+            MenuEntry(OriginStudioIcons.OpenExternal, stringResource(R.string.fm_open_with), onOpenWith)
         }
-        MenuEntry(Origin StudioIcons.FolderExport, stringResource(R.string.fm_export), onExport)
-        MenuEntry(Origin StudioIcons.FilePlus, stringResource(R.string.files_new_file), onNewFile)
-        MenuEntry(Origin StudioIcons.FolderPlus, stringResource(R.string.files_new_folder), onNewFolder)
-        MenuEntry(Origin StudioIcons.Pencil, stringResource(R.string.files_rename), onRename)
-        MenuEntry(Origin StudioIcons.MoveTo, stringResource(R.string.files_move), onMove)
+        MenuEntry(OriginStudioIcons.FolderExport, stringResource(R.string.fm_export), onExport)
+        MenuEntry(OriginStudioIcons.FilePlus, stringResource(R.string.files_new_file), onNewFile)
+        MenuEntry(OriginStudioIcons.FolderPlus, stringResource(R.string.files_new_folder), onNewFolder)
+        MenuEntry(OriginStudioIcons.Pencil, stringResource(R.string.files_rename), onRename)
+        MenuEntry(OriginStudioIcons.MoveTo, stringResource(R.string.files_move), onMove)
         androidx.compose.material3.DropdownMenuItem(
             text = { Text(stringResource(R.string.files_delete), color = Palette.Pink) },
-            leadingIcon = { Icon(Origin StudioIcons.Trash, null, tint = Palette.Pink, modifier = Modifier.size(18.dp)) },
+            leadingIcon = { Icon(OriginStudioIcons.Trash, null, tint = Palette.Pink, modifier = Modifier.size(18.dp)) },
             onClick = onDelete,
         )
     }
@@ -955,8 +955,8 @@ private fun UploadChoiceDialog(onFiles: () -> Unit, onFolder: () -> Unit, onDism
         title = { Text(stringResource(R.string.fm_upload_title), color = Palette.Text) },
         text = {
             Column {
-                MenuEntry(Origin StudioIcons.FileText, stringResource(R.string.fm_upload_files), onFiles)
-                MenuEntry(Origin StudioIcons.FolderImport, stringResource(R.string.fm_upload_folder), onFolder)
+                MenuEntry(OriginStudioIcons.FileText, stringResource(R.string.fm_upload_files), onFiles)
+                MenuEntry(OriginStudioIcons.FolderImport, stringResource(R.string.fm_upload_folder), onFolder)
             }
         },
         confirmButton = {},
@@ -1197,7 +1197,7 @@ private fun TextEditor(
                 .padding(start = 6.dp, end = 8.dp, top = 8.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            BareIconButton(icon = Origin StudioIcons.Close, contentDescription = stringResource(R.string.action_close), onClick = onClose)
+            BareIconButton(icon = OriginStudioIcons.Close, contentDescription = stringResource(R.string.action_close), onClick = onClose)
             Spacer(Modifier.width(4.dp))
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1225,17 +1225,17 @@ private fun TextEditor(
             if (text != null) {
                 if (com.oneorigin.studio.preview.Preview.canPreview(file)) {
                     val context = androidx.compose.ui.platform.LocalContext.current
-                    EditorAction(Origin StudioIcons.Globe, stringResource(R.string.preview_title)) {
+                    EditorAction(OriginStudioIcons.Globe, stringResource(R.string.preview_title)) {
                         com.oneorigin.studio.preview.Preview.openFile(context, file)
                     }
                 }
-                EditorAction(Origin StudioIcons.Search, stringResource(R.string.files_search)) { js("tf.search();") }
-                EditorAction(Origin StudioIcons.Wrap, stringResource(R.string.files_wrap), active = wrap) {
+                EditorAction(OriginStudioIcons.Search, stringResource(R.string.files_search)) { js("tf.search();") }
+                EditorAction(OriginStudioIcons.Wrap, stringResource(R.string.files_wrap), active = wrap) {
                     wrap = !wrap
                     js("tf.setWrap($wrap);")
                 }
-                EditorAction(Origin StudioIcons.Undo, stringResource(R.string.files_undo)) { js("tf.undo();") }
-                EditorAction(Origin StudioIcons.Redo, stringResource(R.string.files_redo)) { js("tf.redo();") }
+                EditorAction(OriginStudioIcons.Undo, stringResource(R.string.files_undo)) { js("tf.undo();") }
+                EditorAction(OriginStudioIcons.Redo, stringResource(R.string.files_redo)) { js("tf.redo();") }
                 if (text.writable) {
                     Spacer(Modifier.width(6.dp))
                     SaveButton(dirty = dirty, saving = saving) { js("tf.requestSave();") }
@@ -1278,7 +1278,7 @@ private fun TextEditor(
                         }
                         webChromeClient = object : android.webkit.WebChromeClient() {
                             override fun onConsoleMessage(message: android.webkit.ConsoleMessage): Boolean {
-                                android.util.Log.i("Origin StudioEditor", "${message.message()} (${message.sourceId()}:${message.lineNumber()})")
+                                android.util.Log.i("OriginStudioEditor", "${message.message()} (${message.sourceId()}:${message.lineNumber()})")
                                 return true
                             }
                         }
@@ -1359,7 +1359,7 @@ private fun SaveButton(dirty: Boolean, saving: Boolean, onClick: () -> Unit) {
         if (saving) {
             CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 1.5.dp, color = if (dirty) Palette.OnAccent else Palette.Accent)
         } else {
-            Icon(Origin StudioIcons.Save, null, tint = if (dirty) Palette.OnAccent else Palette.TextDim, modifier = Modifier.size(15.dp))
+            Icon(OriginStudioIcons.Save, null, tint = if (dirty) Palette.OnAccent else Palette.TextDim, modifier = Modifier.size(15.dp))
         }
         Spacer(Modifier.width(6.dp))
         Text(
@@ -1428,7 +1428,7 @@ fun FilesButton(open: Boolean, onClick: () -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            Origin StudioIcons.Files,
+            OriginStudioIcons.Files,
             contentDescription = stringResource(R.string.files_toggle),
             tint = if (open) Palette.Accent else Palette.TextDim,
             modifier = Modifier.size(21.dp),
