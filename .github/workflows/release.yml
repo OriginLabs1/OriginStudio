@@ -144,6 +144,10 @@ jobs:
           python tools/fetch-shell-runtime.py
           python tools/fetch-ca-bundle.py
 
+      - name: Run unit tests
+        shell: bash
+        run: ./gradlew --no-daemon testDebugUnitTest
+
       - name: Require signing key
         shell: bash
         env:
@@ -301,12 +305,23 @@ jobs:
           - PRoot, not a virtual machine: no systemd, no kernel modules, no raw sockets.
           - Bring your own account or API key for each external coding agent.
           - Not on Google Play. Distributed through GitHub Releases and Obtainium.
-          - This release adds the pinned QVAC local-AI runtime as the MLP foundation. The
+          - The pinned QVAC local-AI runtime is included as the MLP foundation. The
             Ask/Explain/Fix editor surface is not exposed yet; the core workspace remains fully
             usable without it. The runtime requires arm64-v8a and Android 10 (API 29) or newer.
           - QVAC cannot run on emulators. Functional inference is verified on a physical arm64
             device before the MLP release, not by CI.
+          EOF
 
+          # Per-version notes live next to the source they describe, so the release record is
+          # reviewable in the repository before the tag exists.
+          VERSION_NOTES="docs/releases/v${VERSION}.md"
+          if [ -f "${VERSION_NOTES}" ]; then
+            printf '\n### What changed in v%s\n\n' "${VERSION}" >> release-notes.md
+            cat "${VERSION_NOTES}" >> release-notes.md
+            printf '\n' >> release-notes.md
+          fi
+
+          cat >> release-notes.md <<'EOF'
           ### Distribution
 
           GitHub Releases is the canonical source. Obtainium, the website and any mirror must

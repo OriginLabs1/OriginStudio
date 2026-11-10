@@ -11,12 +11,12 @@ plugins {
 val originVersionName: String =
     providers.environmentVariable("ORIGIN_VERSION_NAME").orNull
         ?: providers.gradleProperty("origin.versionName").orNull
-        ?: "0.0.2"
+        ?: "0.0.3"
 val originVersionCode: Int =
     (
         providers.environmentVariable("ORIGIN_VERSION_CODE").orNull
             ?: providers.gradleProperty("origin.versionCode").orNull
-        )?.toIntOrNull() ?: 2
+        )?.toIntOrNull() ?: 3
 
 // QVAC is the MLP's local-AI engine, so the app does not build without the pinned
 // artifact. The repository is fetched once with `python3 tools/fetch-qvac.py`, which
@@ -48,6 +48,13 @@ android {
         targetSdk = 28
         versionCode = originVersionCode
         versionName = originVersionName
+
+        // Only the two ABIs the product actually runs on. Dependencies ship 32-bit copies of a
+        // few helper libraries; without this filter they land in the APK and let a 32-bit device
+        // install a build that cannot start PRoot or the guest at all.
+        ndk {
+            abiFilters += listOf("arm64-v8a", "x86_64")
+        }
     }
 
     androidResources {

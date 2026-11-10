@@ -1,0 +1,42 @@
+# Strategy and governance documents
+
+These documents turn *The Constitution* (v0.0.1) and `MLP-ALP-SCOPE.md` into
+things that can be checked. They are normative for this repository, but a document
+that claims more than the code does is a bug: the status column is part of the
+record.
+
+| Document | Purpose |
+| --- | --- |
+| [GOVERNANCE.md](GOVERNANCE.md) | Who decides, how the constitution changes, how releases are authorised |
+| [THREAT-MODEL.md](THREAT-MODEL.md) | Assets, adversaries, trust boundaries, and what is explicitly out of scope |
+| [REQUIREMENTS.md](REQUIREMENTS.md) | Every constitutional MUST as a numbered, verifiable requirement with evidence |
+| [DEVIATIONS.md](DEVIATIONS.md) | Every requirement not yet met, with owner, reason and expiry |
+| [PERSONAS.md](PERSONAS.md) | Who the first users are, the job they hire the app for, and how the five-user gate is run |
+| [../DISTRIBUTION.md](../DISTRIBUTION.md) | Channels, verification, rollback and the rules a mirror must follow |
+| [../adr/0001-qvac-local-ai.md](../adr/0001-qvac-local-ai.md) | Why QVAC is the reference local-AI engine |
+| [../adr/0002-execution-model.md](../adr/0002-execution-model.md) | Why `targetSdk` is pinned to 28, and what replaces it |
+
+## The rule that keeps this honest
+
+A requirement is **Met** only when its evidence is linked in `REQUIREMENTS.md` and
+that evidence is part of the tagged source or the published release. Anything else
+is **Partial** or **Not met**, and appears in `DEVIATIONS.md`.
+
+## Profiles
+
+Conformance is claimed per profile, never in general.
+
+| Profile | Meaning | Claimed by |
+| --- | --- | --- |
+| **P0 Core** | Trust, authorisation, storage, recovery, signed release | every public build |
+| **P1 Workspace** | Create, edit, run, preview, export on the declared device tier | the MLP |
+| **P2 Intelligence** | Local AI with reversible actions, offline | the MLP |
+| **P3 Ecosystem** | Installable, signed, revocable capabilities | the ALP |
+| **P4 Universal** | A second platform and a remote provider behind the same contracts | later |
+
+## Current claim
+
+`v0.0.2` and `v0.0.3` claim **P0 (partial)** and **P1 (partial)**. P2 is
+**not claimed**: the engine ships and the availability gate works, but the
+Ask / Explain / Fix surface is not exposed and inference has not run on a
+physical arm64 device. See `DEVIATIONS.md`.

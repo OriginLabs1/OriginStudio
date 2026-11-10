@@ -59,20 +59,25 @@ apksigner verify --print-certs app/build/outputs/apk/release/OriginStudio-releas
 ## Release a version
 
 ```bash
-git tag v0.0.2
-git push origin v0.0.2
+git tag v0.0.3
+git push origin v0.0.3
 ```
 
-Or run **Actions → Release → Run workflow** with a version such as `0.0.2`. The workflow:
+Or run **Actions → Release → Run workflow** with a version such as `0.0.3`. The workflow:
 
 1. derives `versionName` and `versionCode` from the tag (`major * 10000 + minor * 100 + patch`);
 2. fetches and hash-verifies the pinned QVAC Maven repository;
 3. stages the pinned Debian rootfs, PRoot binaries and CA bundle;
-4. decodes the release keystore from `ORIGIN_KEYSTORE_BASE64`;
-5. builds, shrinks and signs `OriginStudio-release.apk`;
-6. verifies the APK with `apksigner` and records the signing certificate;
-7. writes the SHA-256 checksums, `SHA256SUMS`, `signing-certificate.txt` and `release-manifest.json`;
-8. publishes all of it to GitHub Releases, which makes it available to Obtainium and the website.
+4. runs the JVM unit tests and fails the release if any of them fail;
+5. decodes the release keystore from `ORIGIN_KEYSTORE_BASE64`;
+6. builds, shrinks and signs `OriginStudio-release.apk`;
+7. verifies the APK with `apksigner` and records the signing certificate;
+8. writes the SHA-256 checksums, `SHA256SUMS`, `signing-certificate.txt` and `release-manifest.json`;
+9. publishes all of it to GitHub Releases, which makes it available to Obtainium and the website.
+
+Release notes are generated from the tag; if `docs/releases/v<version>.md` exists, its
+contents are appended under *What changed*, so the release record is reviewable in
+the repository before the tag is pushed.
 
 A tag must never be reused. If a release is wrong, bump the patch version and publish again.
 

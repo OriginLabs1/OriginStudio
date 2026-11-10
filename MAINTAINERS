@@ -1,0 +1,13 @@
+# Maintainers
+
+| Role | Holder |
+| --- | --- |
+| Steward (final decision, brand, licences, release key) | OneOrigin / `OriginLabs1` |
+| Maintainer (merge, triage, releases) | OneOrigin / `OriginLabs1` |
+| Security contact | GitHub private vulnerability reporting on this repository |
+
+Successor maintainer: **not yet named.** This is a recorded risk, not an
+oversight. The release key, organisation ownership and domain must have a
+documented recovery path before any release advertises long-term support.
+
+See `docs/strategy/GOVERNANCE.md` for authority, amendments and key custody.

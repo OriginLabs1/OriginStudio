@@ -47,7 +47,7 @@ This is optional; CI is the canonical publisher. If you build locally you need t
 release keystore and its passwords (see [RELEASING.md](RELEASING.md)):
 
 ```bash
-ORIGIN_VERSION_NAME=0.0.2 ORIGIN_VERSION_CODE=2 ./gradlew :app:assembleRelease
+ORIGIN_VERSION_NAME=0.0.3 ORIGIN_VERSION_CODE=3 ./gradlew :app:assembleRelease
 ```
 
 On a low-memory machine R8 needs the heap to itself: stop other Gradle daemons and run

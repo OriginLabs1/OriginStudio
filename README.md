@@ -52,11 +52,20 @@ python3 tools/fetch-ca-bundle.py
 A signed release build additionally needs the release keystore at `termfold-release.jks` and the `TERMFOLD_STORE_PASSWORD` / `TERMFOLD_KEY_PASSWORD` environment variables. Release versions are supplied by the tag-driven GitHub Actions workflow in `.github/workflows/release.yml`:
 
 ```bash
-git tag v0.0.1
-git push origin v0.0.1
+git tag v0.0.3
+git push origin v0.0.3
 ```
 
 See `docs/` for the engineering notes and `THIRD_PARTY_NOTICES.md` for bundled components.
+
+## Project documents
+
+- `BRAND.md` — the Origin Loop mark, the steel palette and the asset inventory.
+- `BLUEPRINT.md` — the product and architecture blueprint.
+- `RELEASING.md` — how a signed release is cut and verified.
+- `docs/DISTRIBUTION.md` — channels, device tiers, verification and rollback.
+- `docs/strategy/` — governance, threat model, requirements register, deviations and personas.
+- `docs/PRIVACY.md`, `docs/SECURITY.md`, `docs/ACCESSIBILITY.md` — the published policies.
 
 ## License
 
