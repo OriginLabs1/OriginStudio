@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://originlabs1.github.io/OriginStudio/contracts/host-capabilities.schema.json",
+  "title": "Origin host disclosure",
+  "description": "What a host must state before it may be used. A missing or 'unknown' operator, region or retention fails disclosure.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "hostId",
+    "operator",
+    "region",
+    "location",
+    "isolation",
+    "retention",
+    "availability",
+    "price",
+    "protocol",
+    "capabilities",
+    "dataFlowClass"
+  ],
+  "properties": {
+    "hostId": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "operator": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "region": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "location": { "type": "string", "enum": ["device", "hub", "managed", "third-party"] },
+    "isolation": {
+      "type": "string",
+      "enum": ["app-sandbox", "wasm", "compatibility", "container", "microvm", "remote-disclosed"]
+    },
+    "retention": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "availability": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "price": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "protocol": { "type": "string", "pattern": "^origin\\.host/v[0-9]+(\\.[0-9]+)?$" },
+    "capabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 100 }
+    },
+    "dataFlowClass": { "type": "integer", "minimum": 0, "maximum": 4 }
+  }
+}

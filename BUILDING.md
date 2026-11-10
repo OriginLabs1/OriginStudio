@@ -25,6 +25,21 @@ Re-running is cheap: a matching `.qvac/PROVENANCE.json` short-circuits the downl
 ./gradlew assembleDebug
 ```
 
+The portable trust core is a separate plain-JVM module and does not need the
+Android SDK, QVAC or a device:
+
+```bash
+./gradlew :core:test
+node tools/validate-contracts.mjs
+node tools/check-evidence.mjs
+```
+
+The reference remote host is dependency-free Node (20+):
+
+```bash
+cd hosts/hub && npm test
+```
+
 ## Output
 
 APK will be generated at `app/build/outputs/apk/debug/OriginStudio-debug.apk`

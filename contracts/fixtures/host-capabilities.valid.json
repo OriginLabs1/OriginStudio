@@ -1,0 +1,13 @@
+{
+  "hostId": "hub-reference",
+  "operator": "the user",
+  "region": "home",
+  "location": "hub",
+  "isolation": "container",
+  "retention": "workspace copies deleted 24h after the lease ends",
+  "availability": "while the host is online",
+  "price": "free (user-operated)",
+  "protocol": "origin.host/v1",
+  "capabilities": ["workspace.open", "workspace.checkpoint", "run.turn"],
+  "dataFlowClass": 3
+}

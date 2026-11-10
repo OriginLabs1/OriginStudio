@@ -1,0 +1,11 @@
+{
+  "seq": 2,
+  "at": "2026-11-10T00:01:00Z",
+  "type": "lease.acquired",
+  "payload": {
+    "host": "device",
+    "epoch": "1"
+  },
+  "prev": "6824ab5038333a5608ba33fefd2859c1f570096068733fe38e7096fdbfd429f2",
+  "hash": "6e8cc1113c31df00c2c8aef5e0145cd4a42c83e643f1b1d21fb1e803c86e9e6d"
+}

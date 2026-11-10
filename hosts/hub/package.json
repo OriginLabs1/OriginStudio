@@ -1,0 +1,14 @@
+{
+  "name": "@origin/hub",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dependency-free reference host for the Origin Host Protocol (origin.host/v1).",
+  "type": "module",
+  "main": "server.js",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "license": "Apache-2.0"
+}

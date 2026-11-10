@@ -32,3 +32,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "OriginStudio"
 include(":app")
+include(":core")

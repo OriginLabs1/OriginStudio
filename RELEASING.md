@@ -43,6 +43,10 @@ A tag is immutable, so the source that carries it must already build. Locally:
 
 ```bash
 python3 tools/fetch-qvac.py     # hash-verified, git-ignored .qvac/ repository
+./gradlew :core:test            # portable contract tests, no Android SDK needed
+node tools/validate-contracts.mjs
+node tools/check-evidence.mjs
+(cd hosts/hub && npm test)
 ./gradlew :app:testDebugUnitTest
 ORIGIN_VERSION_NAME=<version> ORIGIN_VERSION_CODE=<code> ./gradlew :app:assembleRelease
 ```

@@ -172,6 +172,10 @@ android {
 }
 
 dependencies {
+    // The portable trusted core. It has no Android imports, so the same code is covered by
+    // plain JVM tests and can run inside the reference host.
+    implementation(project(":core"))
+
     implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.activity:activity-compose:1.10.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")

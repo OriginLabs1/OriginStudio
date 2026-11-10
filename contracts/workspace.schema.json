@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://originlabs1.github.io/OriginStudio/contracts/workspace.schema.json",
+  "title": "Origin workspace manifest",
+  "description": "The portable manifest stored at .origin/manifest.json. Plain JSON, no database.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "name", "createdAt", "owners", "policy"],
+  "properties": {
+    "schema": { "const": "origin.workspace/v1" },
+    "id": { "type": "string", "pattern": "^ws_[a-f0-9]{16}$" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "owners": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "defaultDataFlowClass": { "type": "integer", "minimum": 0, "maximum": 4, "default": 0 },
+    "policy": { "type": "string", "enum": ["local-authoritative"], "default": "local-authoritative" }
+  }
+}

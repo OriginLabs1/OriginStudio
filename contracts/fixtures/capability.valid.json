@@ -1,0 +1,12 @@
+{
+  "schema": "origin.capability/v1",
+  "id": "demo.summarise",
+  "version": "1.0.0",
+  "publisher": "did:origin:0123456789abcdef0123456789abcdef",
+  "publisherPublicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEexampleexampleexampleexampleexampleexampleexampleexampleexampleexample",
+  "permissions": ["workspace.read", "network.metadata"],
+  "dataFlowClass": 1,
+  "isolation": "wasm",
+  "artifactSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "signature": "MEUCIQDexampleexampleexampleexampleexampleexampleexampleexampleexampleexample"
+}
