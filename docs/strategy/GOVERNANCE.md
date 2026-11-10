@@ -1,9 +1,27 @@
 # Governance
 
-- **Status:** adopted with this document
-- **Applies to:** the OriginStudio repository, its releases, and the constitution
-  that governs them
+- **Status:** adopted with this document, subordinate to `CONSTITUTION.md` v0.2.0
+- **Applies to:** the OriginStudio repository, its releases, its reference hosts,
+  and the constitution that governs them
 - **Owner:** OneOrigin, operating the `OriginLabs1` organisation
+
+## 0. Supremacy
+
+This document describes **how** decisions are made. It does not create authority.
+Authority comes from [`CONSTITUTION.md`](../../CONSTITUTION.md), which is the
+supreme governing text.
+
+The hierarchy is:
+
+1. The Constitution.
+2. `REQUIREMENTS.md` — the Constitution as numbered, verifiable obligations.
+3. Accepted ADRs — how an obligation is met.
+4. This document and the rest of `docs/strategy/`.
+5. Everything else, including code comments and release notes.
+
+If this document, an ADR, a build setting or a shipped feature contradicts the
+Constitution, the contradiction is a defect to be fixed. The Constitution is not
+edited to match the code.
 
 ## 1. Roles
 
@@ -21,13 +39,17 @@ advertises long-term support.
 
 1. **Ordinary change** — a pull request. Two things are required: the change
    builds, and any requirement it touches still has honest evidence.
-2. **Architectural decision** — an ADR in `docs/adr/`, merged before the code.
+2. **Architectural decision** — an ADR in `docs/adr/`, merged before the code. An
+   ADR may choose among permitted options; it may not widen a constitutional
+   promise.
 3. **Product scope change** — an edit to `MLP-ALP-SCOPE.md` plus an entry in the
    decision log below. Moving an item between MLP, ALP and Later is a decision,
-   not an accident.
+   not an accident. It may not defer a dual-mode gate (D1–D5).
 4. **Constitutional change** — an amendment (section 4).
 
 Silence is not consent for 3 and 4. For 1 and 2, maintainer review is enough.
+Every merged change is checked against the Schedule D supremacy checklist in the
+Constitution.
 
 ## 3. Releases
 
@@ -40,7 +62,11 @@ when all of the following are true:
 - `SHA256SUMS`, `signing-certificate.txt` and `release-manifest.json` are
   attached;
 - the notes state the supported device tiers and known limitations;
-- every requirement claimed in `REQUIREMENTS.md` has evidence in that release.
+- the claimed profile in `README.md`, the website and the release notes matches
+  `REQUIREMENTS.md`;
+- every requirement claimed in `REQUIREMENTS.md` has evidence in that release;
+- `:core` tests, the reference-host tests, the contract fixtures and the evidence
+  check pass in CI.
 
 Published artifacts are immutable. A wrong release is superseded by a higher
 patch version; it is never re-tagged, re-signed or silently replaced.
@@ -54,17 +80,20 @@ Changes are classified before they are debated:
 | **Clarification** | Wording only; no new obligation, no changed obligation | Maintainer merge |
 | **Extension** | Adds an obligation | ADR, owner, evidence plan, date |
 | **Amendment** | Changes or removes an obligation | ADR, compatibility note, migration path, new constitution version |
+| **Entrenchment change** | Alters Article 3 | Not permitted under the Origin Studio name; requires a new product identity and a public fork notice |
 
 Rules:
 
 - The constitution is versioned independently of the app. The app may be `0.0.x`
-  while the constitution is `0.1`.
+  while the constitution is `0.2`.
 - A new obligation does not take effect until `REQUIREMENTS.md` has a row for it
   and `DEVIATIONS.md` records the gap, if any.
 - An amendment that would invalidate user data requires a migration plan and a
   grace release.
 - The text lives in the repository. A constitutional change that exists only in a
   chat, a slide or a commit message is not a change.
+- The current text is `CONSTITUTION.md` v0.2.0. It is supreme over this
+  document.
 
 ## 5. The deviations rule
 
@@ -110,6 +139,14 @@ A licence change is a constitutional amendment.
 | Date | Decision | Rationale |
 | --- | --- | --- |
 | 2026-11-07 | QVAC is the reference local-AI engine | ADR-0001 |
-| 2026-11-07 | `targetSdk 28` is pinned | ADR-0002; required for PRoot execution |
+| 2026-11-07 | `targetSdk 28` is pinned | ADR-0002; required for PRoot execution. Now a provider decision under the Constitution |
 | 2026-11-10 | Brand moves from orange to the portal steel palette | v0.0.3; the orange was not the intended identity |
 | 2026-11-10 | P3 and P4 are not claimed before P1 and P2 are complete | One lovable journey, finished |
+| 2026-11-10 | `CONSTITUTION.md` v0.2.0 is supreme over the repository | ADR-0003; the existing project is subordinate and gaps are recorded |
+| 2026-11-10 | Local + remote is a constitutional obligation, tracked by gates D1–D5 | ADR-0003; the shift may not be deferred without an amendment |
+| 2026-11-10 | One Host Protocol (`origin.host/v1`) spans every provider | ADR-0004; local and remote share one contract |
+| 2026-11-10 | Portable workspace manifest, hash-chained history and a single-writer lease | ADR-0005; makes ownership and integrity verifiable |
+| 2026-11-10 | Handoff first, conflict-explicit sync second, CRDT only later | ADR-0006; no silent merge |
+| 2026-11-10 | Capability trust = schema + artifact hash + signature + revocation | ADR-0007; signature alone is insufficient |
+| 2026-11-10 | Network is a capability with deny-by-default egress and a visible ledger | ADR-0008; no ambient network right |
+| 2026-11-10 | Bring-your-own host first; `hosts/hub/` is the reference implementation | ADR-0009; remote without custody |

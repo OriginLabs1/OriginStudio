@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.oneorigin.studio.data.FolderStore
+import com.oneorigin.studio.origin.OriginWorkspace
 import com.oneorigin.studio.shell.DistroMigration
 import com.oneorigin.studio.shell.Projects
 import com.oneorigin.studio.shell.ShellRuntime
@@ -48,6 +49,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private companion object {
         /** How long "Later" holds the offer back. */
         const val SNOOZE_MS = 24L * 60 * 60 * 1000
+
+        const val TAG = "AppViewModel"
     }
 
     private val store = FolderStore(application)
@@ -216,7 +219,20 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 if (added.isEmpty() && kept.size == data.folders.size) data else data.copy(folders = kept + added)
             }
+            // Projects created from a shell, or before this feature existed, gain the portable
+            // manifest and history on first sight. Additive: existing files are never touched.
+            dirs.forEach { dir -> ensureWorkspace(dir, dir.name) }
         }
+    }
+
+    /**
+     * Adds the portable `.origin/` metadata the Constitution requires (Article 7). A failure
+     * here must never stop the user from working: the project stays a plain folder and the
+     * problem is logged.
+     */
+    private fun ensureWorkspace(dir: java.io.File, name: String) {
+        runCatching { OriginWorkspace.ensure(dir, name) }
+            .onFailure { Log.w(TAG, "Could not add workspace metadata to ${dir.name}", it) }
     }
 
     private fun newFolder(dir: java.io.File, name: String, tint: Int) = Folder(
@@ -228,6 +244,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     private suspend fun addProject(dir: java.io.File, name: String): String {
+        withContext(Dispatchers.IO) { ensureWorkspace(dir, name) }
         val folder = newFolder(dir, name, folders.value.folders.size % 6)
         store.update { data -> data.copy(folders = data.folders + folder) }
         return folder.id

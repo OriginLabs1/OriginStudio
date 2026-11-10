@@ -48,6 +48,7 @@
     <nav aria-label="Main">
       <a href="#install">Install</a>
       <a href="how-it-works/">How it works</a>
+      <a href="https://github.com/OriginLabs1/OriginStudio/blob/main/CONSTITUTION.md">Constitution</a>
       <a href="https://github.com/OriginLabs1/OriginStudio">GitHub</a>
     </nav>
   </header>
@@ -73,6 +74,15 @@
       <div class="body">
         <p>I wanted to code on a tablet with a keyboard. On Android that usually means a terminal app, a pile of proot scripts, and package installs that break halfway through. Origin Studio bundles Debian 13 and does that setup once, so <code>apt</code>, <code>git</code>, Node 22, Python and gcc work after the first launch.</p>
         <p>Your projects live inside that Linux system, so symlinks, permissions and npm behave the way they do on a PC. Agents install themselves the first time you type their name: <code>claude</code>, <code>codex</code>, <code>gemini</code>, <code>opencode</code>, <code>pi</code> or <code>qwen</code>. Several of them also get a proper chat screen instead of a terminal, through the <a href="https://agentclientprotocol.com">Agent Client Protocol</a>.</p>
+      </div>
+    </section>
+
+    <section class="row" id="remote">
+      <h2>local and remote</h2>
+      <div class="body">
+        <p>The device stays in charge. Every project is plain files with a small, versioned manifest and a hash-chained history, so it opens without this app. Reading, editing, running local tools and exporting work offline, with no account and no vendor service.</p>
+        <p>When you want more machine than a tablet, the same workspace can run on a host you already own: a laptop, a home server, a small VPS. Both sides speak one protocol, <code>origin.host/v1</code>. The host must disclose who operates it, where it is, how isolated it is, what it retains, what it costs and which capabilities it offers — before you use it. Remote execution is opt-in, and a failure is shown rather than quietly retried somewhere else.</p>
+        <p>The reference host ships in the repository, has no dependencies, and is small enough to read: <a href="https://github.com/OriginLabs1/OriginStudio/tree/main/hosts/hub">hosts/hub</a>. The rules are in <a href="https://github.com/OriginLabs1/OriginStudio/blob/main/docs/strategy/DUAL-MODE.md">the dual-mode notes</a>, and the binding text is <a href="https://github.com/OriginLabs1/OriginStudio/blob/main/CONSTITUTION.md">the Constitution</a>.</p>
       </div>
     </section>
 

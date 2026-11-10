@@ -63,6 +63,26 @@ manifest, the signing certificate, a description and a licence. Do it after
 | `signing-certificate.txt` | `apksigner` output, full certificate |
 | `release-manifest.json` | Machine-readable version, size, hash, certificate |
 | Release notes | What changed, device tiers, known limitations, rollback |
+| Source archive (tag) | The exact tree, including `:core`, `contracts/` and `hosts/hub/` |
+
+The source archive is part of the distribution, not a courtesy. It carries the
+Constitution, the requirements register, the contracts and the reference host, so
+anyone can verify the claims and run a remote host without the app.
+
+## Distribute the core and the host
+
+The dual-mode shift is distributed as source, deliberately:
+
+| Component | Where | How it is consumed |
+| --- | --- | --- |
+| `:core` | `core/` in the tagged tree | Built by Gradle; plain JVM, no Android imports |
+| Contracts | `contracts/` | JSON Schema 2020-12 plus cross-language fixtures |
+| Reference host | `hosts/hub/` | `node hosts/hub/server.js`; no dependencies |
+| Constitution | `CONSTITUTION.md` | Linked from the README and the website |
+
+A downstream host implementation is conformant only when it passes the same
+fixtures and the reference-host tests. A fork that changes the wire format must
+use a new protocol major and may not call itself compatible.
 
 ## Verify a download
 
@@ -74,6 +94,14 @@ apksigner verify --print-certs OriginStudio-<version>.apk
 Compare the printed SHA-256 with `signing-certificate.txt`. The certificate must
 be the one published with every previous release; a different certificate means
 the update is not an update.
+
+Verify the remote-side contract as well:
+
+```bash
+node tools/validate-contracts.mjs
+node tools/check-evidence.mjs
+cd hosts/hub && npm test
+```
 
 ## Device tiers
 
@@ -89,12 +117,14 @@ runtime is `arm64-v8a` only and does not run on emulators.
 ## Release procedure
 
 1. `python3 tools/fetch-qvac.py` — hash-verified, git-ignored.
-2. `./gradlew :app:testDebugUnitTest`
-3. `ORIGIN_VERSION_NAME=<v> ORIGIN_VERSION_CODE=<code> ./gradlew :app:assembleRelease`
-4. Inspect the APK: `minSdk 26`, `targetSdk 28`, `com.oneorigin.studio.ai` present, signed by the release certificate.
-5. `git tag v<version> && git push origin v<version>` — CI builds, signs, verifies and publishes.
-6. Update the website only by linking to the new release.
-7. Announce, with the known limitations from `REQUIREMENTS.md`.
+2. `./gradlew :core:test` and `./gradlew :app:testDebugUnitTest`
+3. `node tools/validate-contracts.mjs && node tools/check-evidence.mjs`
+4. `(cd hosts/hub && npm test)`
+5. `ORIGIN_VERSION_NAME=<v> ORIGIN_VERSION_CODE=<code> ./gradlew :app:assembleRelease`
+6. Inspect the APK: `minSdk 26`, `targetSdk 28`, `com.oneorigin.studio.ai` present, signed by the release certificate.
+7. `git tag v<version> && git push origin v<version>` — CI builds, signs, verifies and publishes.
+8. Update the website only by linking to the new release.
+9. Announce, with the known limitations from `REQUIREMENTS.md` and the claimed profile.
 
 A tag is immutable. A bad release gets a higher patch version.
 
@@ -113,5 +143,8 @@ honest options are:
 
 1. Link to the canonical release and its checksums.
 2. Never re-sign, strip or rebuild.
-3. Mirror the whole set: APK, checksum, certificate, manifest, notes.
+3. Mirror the whole set: APK, checksum, certificate, manifest, notes, and the
+   source archive.
 4. State the mirror date; do not serve a stale "latest".
+5. Do not mirror a host build that claims conformance without the contract and
+   reference-host tests.

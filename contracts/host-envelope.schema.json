@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://originlabs1.github.io/OriginStudio/contracts/host-envelope.schema.json",
+  "title": "Origin Host Protocol envelope",
+  "description": "The single message shape for every local and remote host. Major versions must match; minor versions negotiate down.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol", "type", "id", "seq", "payload"],
+  "properties": {
+    "protocol": { "type": "string", "pattern": "^origin\\.host/v[0-9]+(\\.[0-9]+)?$" },
+    "type": {
+      "type": "string",
+      "enum": [
+        "hello",
+        "capabilities",
+        "open_workspace",
+        "start_session",
+        "run_turn",
+        "stream_event",
+        "checkpoint",
+        "restore",
+        "cancel",
+        "revoke",
+        "health",
+        "error"
+      ]
+    },
+    "id": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "seq": { "type": "integer", "minimum": 1 },
+    "idempotencyKey": { "type": ["string", "null"], "maxLength": 200 },
+    "payload": { "type": "object" }
+  }
+}

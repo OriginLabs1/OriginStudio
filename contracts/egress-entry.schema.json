@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://originlabs1.github.io/OriginStudio/contracts/egress-entry.schema.json",
+  "title": "Origin egress ledger entry",
+  "description": "One line of the hash-chained egress ledger. Denials are recorded as well as grants.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "seq",
+    "at",
+    "capability",
+    "host",
+    "dataFlowClass",
+    "purpose",
+    "bytes",
+    "allowed",
+    "reason",
+    "prev",
+    "hash"
+  ],
+  "properties": {
+    "seq": { "type": "integer", "minimum": 1 },
+    "at": { "type": "string", "format": "date-time" },
+    "capability": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "host": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "dataFlowClass": { "type": "integer", "minimum": 0, "maximum": 4 },
+    "purpose": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "bytes": { "type": "integer", "minimum": 0 },
+    "allowed": { "type": "boolean" },
+    "reason": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "prev": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

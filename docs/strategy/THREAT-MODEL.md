@@ -16,6 +16,10 @@
 | Release artifacts | Every installed copy depends on their integrity | GitHub Releases |
 | Release key | Compromise allows malicious updates | Offline, outside the repo |
 | Availability of work | A lost project is worse than a crash | Workspace + checkpoints |
+| Remote workspace copies | Exist only while a remote host holds the lease | A host the user controls |
+| Host tokens | Access to a reference host | Host environment / user configuration |
+| Egress ledger and workspace history | Prove what left the device and what changed | App storage (`:core`) |
+| Capability manifests and artifacts | Signed code that may run later | Capability store, `contracts/` |
 
 ## 2. Adversaries
 
@@ -31,6 +35,10 @@
 | A8 | Thief with an unlocked device | Full access to app data | Out of scope |
 | A9 | Compromised OS, root, or malicious OEM | Kernel-level control | Out of scope |
 | A10 | Coerced disclosure | Legal or physical pressure on the user | Out of scope (no backdoor, no hidden copy) |
+| A11 | Malicious or careless remote host | Reads, retains or alters workspace content | Yes |
+| A12 | Malicious capability publisher | Signed but harmful extension | Yes |
+| A13 | Network observer | Sees traffic to a remote host | Yes, if the host is not behind TLS |
+| A14 | Silent vendor service | Becomes a required dependency | Yes, by architecture |
 
 ## 3. Trust boundaries
 
@@ -47,6 +55,10 @@ UI (Compose)  ──1──  app process  ──2──  :qvac_worker (Binder, i
                           ▲
                           6
                     GitHub Releases / update channel
+                           │
+                           8  (origin.host/v1, explicit disclosure)
+                           ▼
+                 remote host (hub / user-rented machine)
 
 build host ──7── release key ──7── signed APK ──7── user device
 ```
@@ -56,6 +68,11 @@ It is a *compatibility* layer, not a container. Code in the guest runs with the
 app's UID and can read the app's private data. Any statement that the guest is
 "isolated" or "sandboxed" is false and must not appear in the UI, the docs or the
 release notes.
+
+**Boundary 8 is new and explicit.** A remote host is a different operator's
+machine unless the user says otherwise. It is used only after disclosure, only
+under a lease, and only for the capabilities it advertises. The app may not fall
+back to it silently.
 
 ## 4. Threats and controls
 
@@ -79,6 +96,16 @@ release notes.
 | T16 | Terminal transcript contains secrets | A8 | Stored in app-private storage; no encryption at rest beyond the OS | Accepted risk |
 | T17 | Notification or intent leaks content | A6 | Notifications show session titles, not full output; pending intents are immutable | Met |
 | T18 | Backup of app data includes credentials | A8 | Android auto-backup is disabled for the app (verify per release) | Met |
+| T19 | A rogue or careless remote host reads or retains workspace content | A11, boundary 8 | Explicit disclosure, data minimisation, a lease, and `revoke`; no deletion receipt yet | Partial |
+| T20 | Silent fallback to a remote host | A11, boundary 8 | `HostSelection` requires `allowRemote`, prefers the device, and has no fallback; `HttpOriginHostClient` throws on failure | Met |
+| T21 | Protocol downgrade or version confusion | A11, boundary 8 | Major versions must match exactly; unknown majors and message types fail closed | Met |
+| T22 | A malicious capability with a plausible manifest | A12 | Artifact SHA-256, publisher signature and revocation are all checked before execution | Met (`:core`); installer UI pending |
+| T23 | Workspace history is edited or truncated | A1, A11 | Hash chain verified on open by the app core and the reference host; failures are reported, never repaired | Met |
+| T24 | Two writers corrupt a workspace | A11, boundary 8 | Single-writer lease with epochs; a second host is refused until expiry or explicit handoff | Met |
+| T25 | Egress happens without a grant | A10, boundary 4 | Deny-by-default policy with mandatory capability, host and purpose; denials are logged | Partial — AI path not wired yet |
+| T26 | A remote host keeps a copy after access is revoked | A11, boundary 8 | `revoke` releases the lease and is recorded; deletion receipts are not implemented | Open — P5 |
+| T27 | A leaked host token grants access to the reference host | A11, boundary 8 | Bearer token, constant-time comparison, loopback bind by default, no token in URLs | Partial — no rotation UI |
+| T28 | Data leaves the user's stated region without notice | A11, boundary 8 | `region` is a required disclosure field and is recorded with the session | Partial — no residency UI yet |
 
 ## 5. What is explicitly not defended
 
@@ -101,11 +128,19 @@ otherwise is worse than no page.
    entry here and evidence in the requirements register.
 4. Any new IPC boundary needs its own row in this document before it ships.
 5. A release that weakens a control needs an ADR and a note in the release notes.
+6. A remote host is never used because the local one failed. Failure is shown;
+   substitution is the user's decision.
+7. A capability is never trusted because it is signed. Hash, signature,
+   revocation and isolation class are separate facts.
 
-## 7. Open items before P2
+## 7. Open items
 
-- Egress policy: deny by default, per-session grants, visible log.
+- Egress UI: the deny-by-default policy and ledger exist in `:core`; the AI path
+  is not wired to them yet.
 - Prompt-injection corpus and tool-allowlist tests.
 - Model provenance UI: source, licence, size, hash, delete.
 - Approval classes: reversible (apply/undo) versus consequential (typed
   confirmation).
+- Remote deletion receipts, so D5 can be claimed honestly.
+- Rotation and revocation UI for host tokens.
+- A residency and retention screen before the first remote use (D4).

@@ -1,0 +1,72 @@
+name: CI
+
+# Enforces the parts of the Constitution that can be checked mechanically:
+# the portable core, the wire contracts, the reference host and the honesty of
+# the requirements register. See CONSTITUTION.md Article 16.4.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    name: Core contract tests (JVM)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Test the portable core
+        run: ./gradlew --no-daemon :core:test --console=plain
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-test-reports
+          path: core/build/reports/tests/test
+          if-no-files-found: ignore
+
+  host:
+    name: Reference host contract tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Test the host over real HTTP
+        working-directory: hosts/hub
+        run: npm test
+
+  governance:
+    name: Contracts and evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate JSON Schema fixtures
+        run: node tools/validate-contracts.mjs
+      - name: Check requirements, deviations and evidence links
+        run: node tools/check-evidence.mjs
+      - name: Check the Constitution is present and versioned
+        run: |
+          test -f CONSTITUTION.md
+          grep -q '^\*\*Version:\*\* 0\.2\.0' CONSTITUTION.md
+          grep -q '^## 0. Supremacy' CONSTITUTION.md

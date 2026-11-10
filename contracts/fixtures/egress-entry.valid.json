@@ -1,0 +1,13 @@
+{
+  "seq": 1,
+  "at": "2026-11-10T00:00:00Z",
+  "capability": "ai.ask",
+  "host": "hub.local",
+  "dataFlowClass": 3,
+  "purpose": "run a local model",
+  "bytes": 1024,
+  "allowed": true,
+  "reason": "granted (plaintext to a compute host)",
+  "prev": "0000000000000000000000000000000000000000000000000000000000000000",
+  "hash": "8cae25050d9cc6a12bb5135a54d404f8a60c82722c5adeff917f276e3a6af622"
+}

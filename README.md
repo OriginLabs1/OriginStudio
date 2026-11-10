@@ -6,15 +6,24 @@
 
 <p align="center">Made with love from OneOrigin.</p>
 
+<p align="center"><strong>Governed by <a href="CONSTITUTION.md">The Origin Studio Constitution v0.2.0</a>.</strong> Local and remote execution, one protocol, one workspace.</p>
+
 ## About
 
 Origin Studio is OneOrigin's flagship development workspace: an Android-first, device-agnostic-by-design environment that unifies and strategically extends the useful capabilities of our earlier tools while establishing reusable foundations for future OneOrigin products.
+
+The Constitution is the supreme governing document. The app, the requirements
+register, the ADRs, the build settings and every future host are subordinate to
+it. Where they disagree, the Constitution wins.
 
 ## Features
 
 - **Real Linux Environment** - A full Debian environment inside the app
 - **Native Code Editing** - Built-in file browser and editor with syntax highlighting
 - **Integrated Terminal** - Full Linux terminal with PRoot support
+- **Portable Workspaces** - Every project carries a plain-JSON manifest and a hash-chained history; export opens without Origin Studio
+- **Local + Remote Execution** - One versioned Host Protocol (`origin.host/v1`) for the device and a host you control, with explicit disclosure, leases and handoff
+- **Deny-by-default Network** - Egress is a capability with a purpose, a data-flow class and a tamper-evident ledger
 - **Local AI Foundation** - Pinned, hash-verified QVAC runtime for the upcoming offline Ask/Explain/Fix surface (arm64, Android 10+)
 - **AI Agent Support** - Native chat with ACP agents (Claude, Codex, OpenCode, and more)
 - **Browser for Testing** - Built-in browser for dev servers and web pages
@@ -58,12 +67,48 @@ git push origin v0.0.3
 
 See `docs/` for the engineering notes and `THIRD_PARTY_NOTICES.md` for bundled components.
 
+## The portable core and the reference host
+
+The trust-critical logic is a plain JVM library with no Android imports, so it is
+tested on the JVM and reused by the reference host:
+
+```bash
+./gradlew :core:test                 # workspace, identity, egress, capability, protocol
+node tools/validate-contracts.mjs    # JSON Schema fixtures
+node tools/check-evidence.mjs        # requirements ↔ deviations consistency
+
+cd hosts/hub && npm test             # reference host over real HTTP
+```
+
+Run a host you control:
+
+```bash
+ORIGIN_WORKSPACE_ROOT="$HOME/origin" ORIGIN_HOST_TOKEN="$(openssl rand -hex 16)" \
+  node hosts/hub/server.js
+```
+
+See [`docs/strategy/DUAL-MODE.md`](docs/strategy/DUAL-MODE.md) for the gates,
+disclosure fields and verification steps.
+
+## Conformance
+
+`v0.0.3` plus this tree claims **P0 (partial)** and **P1 (partial)**, with P3/P4
+in progress. P2 is **not claimed**: the engine ships and the availability gate
+works, but the Ask/Explain/Fix surface is not exposed and inference has not run on
+a physical arm64 device. The authoritative statement is
+[`docs/strategy/REQUIREMENTS.md`](docs/strategy/REQUIREMENTS.md); every gap is in
+[`docs/strategy/DEVIATIONS.md`](docs/strategy/DEVIATIONS.md).
+
 ## Project documents
 
+- [`CONSTITUTION.md`](CONSTITUTION.md) — the supreme governing text (v0.2.0).
 - `BRAND.md` — the Origin Loop mark, the steel palette and the asset inventory.
 - `BLUEPRINT.md` — the product and architecture blueprint.
 - `RELEASING.md` — how a signed release is cut and verified.
 - `docs/DISTRIBUTION.md` — channels, device tiers, verification and rollback.
+- [`docs/strategy/DUAL-MODE.md`](docs/strategy/DUAL-MODE.md) — local and remote execution, gates and host operation.
+- [`contracts/README.md`](contracts/README.md) — the wire schemas and fixtures.
+- `docs/adr/` — ADR-0001 … ADR-0009.
 - `docs/strategy/` — governance, threat model, requirements register, deviations and personas.
 - `docs/PRIVACY.md`, `docs/SECURITY.md`, `docs/ACCESSIBILITY.md` — the published policies.
 

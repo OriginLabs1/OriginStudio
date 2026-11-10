@@ -1,0 +1,9 @@
+{
+  "schema": "origin.workspace/v1",
+  "id": "ws_0123456789abcdef",
+  "name": "Reference workspace",
+  "createdAt": "2026-11-10T00:00:00Z",
+  "owners": ["did:origin:0123456789abcdef0123456789abcdef"],
+  "defaultDataFlowClass": 0,
+  "policy": "local-authoritative"
+}

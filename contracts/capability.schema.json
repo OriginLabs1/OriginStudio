@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://originlabs1.github.io/OriginStudio/contracts/capability.schema.json",
+  "title": "Origin capability manifest",
+  "description": "A signed, hash-bound capability. The signature covers a canonical field order excluding 'signature'.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "version",
+    "publisher",
+    "publisherPublicKey",
+    "permissions",
+    "dataFlowClass",
+    "isolation",
+    "artifactSha256",
+    "signature"
+  ],
+  "properties": {
+    "schema": { "const": "origin.capability/v1" },
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(\\.[a-z0-9-]+)+$" },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "publisher": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "publisherPublicKey": { "type": "string", "minLength": 1 },
+    "permissions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z]+(\\.[a-z-]+)+$" }
+    },
+    "dataFlowClass": { "type": "integer", "minimum": 0, "maximum": 4 },
+    "isolation": {
+      "type": "string",
+      "enum": ["app-sandbox", "wasm", "compatibility", "container", "microvm", "remote-disclosed"]
+    },
+    "artifactSha256": { "type": "string", "pattern": "^[a-fA-F0-9]{64}$" },
+    "signature": { "type": "string", "minLength": 1 }
+  }
+}

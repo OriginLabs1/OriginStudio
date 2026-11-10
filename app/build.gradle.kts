@@ -21,13 +21,24 @@ val originVersionCode: Int =
 // QVAC is the MLP's local-AI engine, so the app does not build without the pinned
 // artifact. The repository is fetched once with `python3 tools/fetch-qvac.py`, which
 // verifies the SHA-256 from gradle.properties before anything is unpacked.
+//
+// The check runs as an app task rather than during configuration: the portable :core
+// module must stay buildable on a clean checkout, and `./gradlew :core:test` must not
+// require a 141 MB native runtime.
 val qvacVersion: String = providers.gradleProperty("qvac.version").get()
 val qvacRepository = rootProject.layout.projectDirectory.dir(".qvac/qvac-maven-repository").asFile
-if (!qvacRepository.isDirectory) {
-    throw GradleException(
-        "QVAC ${qvacVersion} is not available at ${qvacRepository.path}.\n" +
-            "Run: python3 tools/fetch-qvac.py"
-    )
+
+val verifyQvac = tasks.register("verifyQvac") {
+    group = "verification"
+    description = "Fails with an actionable message when the pinned QVAC runtime is missing."
+    doFirst {
+        if (!qvacRepository.isDirectory) {
+            throw GradleException(
+                "QVAC ${qvacVersion} is not available at ${qvacRepository.path}.\n" +
+                    "Run: python3 tools/fetch-qvac.py"
+            )
+        }
+    }
 }
 
 android {
@@ -171,7 +182,15 @@ android {
     }
 }
 
+// Every app build path goes through preBuild, so the check fires exactly when the app is
+// built and never when only :core is exercised.
+tasks.named("preBuild") { dependsOn(verifyQvac) }
+
 dependencies {
+    // The portable trusted core. It has no Android imports, so the same code is covered by
+    // plain JVM tests and can run inside the reference host.
+    implementation(project(":core"))
+
     implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.activity:activity-compose:1.10.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
