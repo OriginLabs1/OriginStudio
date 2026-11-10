@@ -22,17 +22,36 @@ store listing, and it does: two shapes, one colour.
 
 ## Colour
 
+The identity is drawn from the Sir Collins portal (`sircollins-portal`): a deep-space
+navy ink, one steel-blue accent, and the portal aurora (teal, violet, rose, soft green)
+reserved for status. Gold and orange are retired from the interface chrome entirely.
+
 | Token | Value | Use |
 | --- | --- | --- |
-| Origin Orange | `#FF7A2E` | The mark on ink, the primary action colour in the app |
-| Ink | `#0B0B0D` | Icon tile, dark surfaces, monochrome mark on light |
-| Paper | `#F6F2EA` | Website and documentation background |
-| Muted | `#6A645A` | Secondary type on paper |
-| Rule | `#D8D0C0` | Hairlines on paper |
+| Origin Steel | `#9EC1E6` | The mark on ink, the primary action colour in the app |
+| Steel Strong | `#D8E9FF` | Selected text, emphasis, pressed states |
+| Steel Deep | `#6A87B8` | Containers, quiet emphasis on paper |
+| Ink | `#05060F` | Icon tile, app background, monochrome mark on light |
+| Ink Raised | `#0E1322` | Cards, sheets, navigation |
+| Ink Line | `#232B45` | Hairlines and input borders on ink |
+| Paper | `#F5F7FC` | Website and documentation background |
+| Muted | `#5C6478` | Secondary type on paper |
+| Rule | `#D5DBE6` | Hairlines on paper |
+| Teal | `#43C6C9` | Success, activity, running work |
+| Violet | `#9A8CFF` | Secondary accent, informational states |
+| Rose | `#FF9FBC` | Errors, destructive actions |
+| Soft Green | `#9FD4A8` | Completed work, healthy status |
 
 The mark is a single flat colour. No gradients, shadows, bevels or outlines. On ink,
-use Orange. On paper, prefer the ink tile so the orange keeps its warmth and contrast.
-The monochrome layer is pure white so Android themed icons can tint it.
+use Steel. On paper, use the ink tile so the steel keeps its contrast. The monochrome
+layer is pure white so Android themed icons can tint it.
+
+**Why this palette.** The portal already carries the intended identity: ink `#05060F`,
+steel `#9EC1E6`, teal `#43C6C9`, violet `#9A8CFF`, rose `#FF9FBC`, soft green `#9FD4A8`.
+The mobile app darkens every surface for OLED and brightens the single accent for
+arm's-length legibility; the website keeps the same hues on cool paper. The retired
+orange (`#FF7A2E`) shipped only in `v0.0.1`–`v0.0.2`; no later build carries it, and
+published artifacts are never recoloured after the fact.
 
 ## Clear space and sizes
 
@@ -48,7 +67,7 @@ The monochrome layer is pure white so Android themed icons can tint it.
 
 | File | Purpose |
 | --- | --- |
-| `tools/brand/logo.svg` | Primary vector mark, orange on transparent |
+| `tools/brand/logo.svg` | Primary vector mark, steel on transparent |
 | `tools/brand/logo-mono.svg` | One-colour vector mark |
 | `tools/brand/app-icon.svg` | Mark on the rounded ink tile |
 | `tools/brand/logo-lockup.svg` | Horizontal mark + wordmark |
@@ -94,5 +113,6 @@ the file, not the generated files.
 
 `v0.0.1` shipped the retired folder mark. Published artifacts are never re-signed,
 re-tagged or silently modified, so that release stays exactly as published. The Origin
-Loop debuts in `v0.0.2` and everything after it. `v0.0.2` supersedes `v0.0.1` as the
-branded release; it does not rewrite it.
+Loop debuted in `v0.0.2`, in the orange that was later found not to be the intended
+identity. `v0.0.3` is the first release with the steel palette above; `v0.0.1` and
+`v0.0.2` keep their published orange assets, and no later build carries orange chrome.

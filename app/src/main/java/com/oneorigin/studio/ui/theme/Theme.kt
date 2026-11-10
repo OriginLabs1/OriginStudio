@@ -7,6 +7,14 @@ import androidx.compose.runtime.Composable
 private val OriginStudioColors = darkColorScheme(
     primary = Palette.Accent,
     onPrimary = Palette.OnAccent,
+    primaryContainer = Palette.AccentDeep,
+    onPrimaryContainer = Palette.AccentStrong,
+    secondary = Palette.Teal,
+    onSecondary = Palette.OnAccent,
+    tertiary = Palette.Violet,
+    onTertiary = Palette.OnAccent,
+    error = Palette.Pink,
+    onError = Palette.OnAccent,
     background = Palette.Bg,
     onBackground = Palette.Text,
     surface = Palette.Card,
@@ -14,6 +22,7 @@ private val OriginStudioColors = darkColorScheme(
     surfaceVariant = Palette.Field,
     onSurfaceVariant = Palette.TextDim,
     outline = Palette.Border,
+    outlineVariant = Palette.BorderSoft,
 )
 
 @Composable

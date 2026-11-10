@@ -111,7 +111,7 @@ object Notifier {
         val place = placeOf(sessionKey) ?: return
         val notification = NotificationCompat.Builder(context, channel)
             .setSmallIcon(R.drawable.ic_stat_termfold)
-            .setColor(0xFFFF7A2E.toInt())
+            .setColor(0xFF9EC1E6.toInt())
             .setContentTitle(title)
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
@@ -218,7 +218,7 @@ object Notifier {
         val you = Person.Builder().setName(context.getString(R.string.bubble_you)).build()
         val notification = NotificationCompat.Builder(context, CHANNEL_BUBBLE)
             .setSmallIcon(R.drawable.ic_stat_termfold)
-            .setColor(0xFFFF7A2E.toInt())
+            .setColor(0xFF9EC1E6.toInt())
             .setContentTitle(context.getString(R.string.app_name))
             .setContentText(label)
             .setStyle(
@@ -279,7 +279,7 @@ object Notifier {
         if (!canNotify(context)) return
         val notification = NotificationCompat.Builder(context, CHANNEL_ATTENTION)
             .setSmallIcon(R.drawable.ic_stat_termfold)
-            .setColor(0xFFFF7A2E.toInt())
+            .setColor(0xFF9EC1E6.toInt())
             .setContentTitle(context.getString(R.string.notify_browser_title))
             .setContentText(context.getString(R.string.notify_browser_body))
             .setCategory(NotificationCompat.CATEGORY_REMINDER)

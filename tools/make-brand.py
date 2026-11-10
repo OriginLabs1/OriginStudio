@@ -10,7 +10,7 @@ Run with no arguments (standard library only):
     python3 tools/make-brand.py
 
 Outputs:
-    tools/brand/logo.svg                  primary mark, orange on transparent
+    tools/brand/logo.svg                  primary mark, steel blue on transparent
     tools/brand/logo-mono.svg             one-colour mark for stamps and themed icons
     tools/brand/app-icon.svg              mark on the dark rounded tile
     tools/brand/logo-lockup.svg           horizontal mark + wordmark
@@ -50,9 +50,9 @@ MARK_W = OUTER_R * 2.0               # 57.5
 ADAPTIVE_CANVAS_DP = 108.0
 ADAPTIVE_MARK_DP = 60.0
 
-ORANGE = (255, 122, 46)
-INK = (11, 11, 13)
-PAPER = (246, 242, 234)
+ACCENT = (158, 193, 230)
+INK = (5, 6, 15)
+PAPER = (245, 247, 252)
 WHITE = (255, 255, 255)
 
 DENSITIES = {"mdpi": 1.0, "hdpi": 1.5, "xhdpi": 2.0, "xxhdpi": 3.0, "xxxhdpi": 4.0}
@@ -212,10 +212,10 @@ def write_png(path, size, raw):
 def main():
     # SVG sources of record.
     files = {
-        "logo.svg": svg_document(mark_svg("#FF7A2E")),
-        "logo-mono.svg": svg_document(mark_svg("#0B0B0D")),
-        "app-icon.svg": tile_svg("#FF7A2E", "#0B0B0D", 512),
-        "favicon.svg": tile_svg("#FF7A2E", "#0B0B0D", 64, radius_fraction=0.225),
+        "logo.svg": svg_document(mark_svg("#9EC1E6")),
+        "logo-mono.svg": svg_document(mark_svg("#05060F")),
+        "app-icon.svg": tile_svg("#9EC1E6", "#05060F", 512),
+        "favicon.svg": tile_svg("#9EC1E6", "#05060F", 64, radius_fraction=0.225),
     }
     for name, content in files.items():
         path = os.path.join(MEDIA if name == "favicon.svg" else BRAND, name)
@@ -226,9 +226,9 @@ def main():
 
     # Full-resolution brand masters.
     write_png(os.path.join(BRAND, "logo-mark.png"), 1024,
-              render_mark(1024, ORANGE, 0.94, samples=4))
+              render_mark(1024, ACCENT, 0.94, samples=4))
     write_png(os.path.join(BRAND, "logo-source.png"), 1024,
-              render_tile(1024, ORANGE, INK, 0.60, samples=4))
+              render_tile(1024, ACCENT, INK, 0.60, samples=4))
     print("  tools/brand/logo-mark.png")
     print("  tools/brand/logo-source.png")
 
@@ -238,13 +238,13 @@ def main():
         fraction = ADAPTIVE_MARK_DP / ADAPTIVE_CANVAS_DP
         folder = os.path.join(RES, f"mipmap-{name}")
         write_png(os.path.join(folder, "ic_launcher_foreground.png"), canvas,
-                  render_mark(canvas, ORANGE, fraction, samples=4))
+                  render_mark(canvas, ACCENT, fraction, samples=4))
         write_png(os.path.join(folder, "ic_launcher_monochrome.png"), canvas,
                   render_mark(canvas, WHITE, fraction, samples=4))
         print(f"  mipmap-{name}: {canvas} px")
 
     # Web assets.
-    tile = render_tile(512, ORANGE, INK, 0.60, samples=4)
+    tile = render_tile(512, ACCENT, INK, 0.60, samples=4)
     write_png(os.path.join(MEDIA, "logo.png"), 512, tile)
     write_png(os.path.join(MEDIA, "app-icon-512.png"), 512, tile)
     print("  docs/media/logo.png")

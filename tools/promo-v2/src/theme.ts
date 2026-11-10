@@ -3,12 +3,12 @@ import { Easing } from "remotion";
 export const FPS = 60;
 
 export const C = {
-  bg: "#060607",
-  text: "#F4F4F6",
-  dim: "#8B8B93",
-  faint: "#55555C",
-  accent: "#FF7A2E",
-  accentSoft: "rgba(255,122,46,0.14)",
+  bg: "#05070E",
+  text: "#EEF1FF",
+  dim: "#A7AECB",
+  faint: "#7B83A3",
+  accent: "#9EC1E6",
+  accentSoft: "rgba(158,193,230,0.14)",
 };
 
 export const SANS = "Outfit, sans-serif";

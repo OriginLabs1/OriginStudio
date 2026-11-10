@@ -35,13 +35,15 @@ object ShellTheme {
     private fun c(hex: Long) = hex.toInt()
 
     val THEMES: List<Theme> = listOf(
-        // The app's own near-black, so the terminal is not a differently-shaded rectangle. The
-        // dim half stays legible on black; that half is what most TUIs and `ls --color` use.
+        // The app's own ink, so the terminal is not a differently-shaded rectangle. The ANSI
+        // table is the portal aurora retuned for long reading: rose, soft green, sand, steel,
+        // lavender and teal. The dim half stays legible on near-black, which is what most TUIs
+        // and `ls --color` use.
         Theme(
-            "termfold", "Origin Studio", c(0xFF08080A), c(0xFFD8D8DC), c(0xFFFF7A2E),
+            "termfold", "Origin Studio", c(0xFF05070E), c(0xFFEEF1FF), c(0xFF9EC1E6),
             intArrayOf(
-                c(0xFF1B1B20), c(0xFFE06C75), c(0xFF7EC87E), c(0xFFE5C07B), c(0xFF61AFEF), c(0xFFC678DD), c(0xFF56B6C2), c(0xFFC8C8CC),
-                c(0xFF5C6370), c(0xFFFF7A85), c(0xFF9BE39B), c(0xFFFFD68A), c(0xFF82C7FF), c(0xFFDC9BF0), c(0xFF7FD8E4), c(0xFFF4F4F6),
+                c(0xFF10141F), c(0xFFFF8FAE), c(0xFF9FD4A8), c(0xFFE6BE8A), c(0xFF7AA6D8), c(0xFFC2B2FF), c(0xFF43C6C9), c(0xFFC8CEDA),
+                c(0xFF5A6480), c(0xFFFFA9C0), c(0xFFB7E6BE), c(0xFFF2D3A6), c(0xFFA8D5FF), c(0xFFD9C8FF), c(0xFF8FE0D8), c(0xFFEEF1FF),
             ),
         ),
         Theme(
@@ -75,10 +77,10 @@ object ShellTheme {
         // A light scheme whose "white" entries are dark enough to read on paper, since programs
         // assume white text is visible.
         Theme(
-            "light", "Light", c(0xFFFAFAF7), c(0xFF26262B), c(0xFFE8590C),
+            "light", "Light", c(0xFFF5F7FC), c(0xFF141A26), c(0xFF4E6E9E),
             intArrayOf(
-                c(0xFF26262B), c(0xFFC5283D), c(0xFF2F7D32), c(0xFF9A6700), c(0xFF1F5FBF), c(0xFF8B3FB0), c(0xFF0F7B84), c(0xFF6E6E76),
-                c(0xFF8A8A92), c(0xFFE0364C), c(0xFF3A9A3F), c(0xFFB57C00), c(0xFF2D74DC), c(0xFFA24FCB), c(0xFF13939D), c(0xFF3C3C43),
+                c(0xFF141A26), c(0xFFB23A5B), c(0xFF2F7D4F), c(0xFF8A6414), c(0xFF2F5B96), c(0xFF6B4FAE), c(0xFF0F7B84), c(0xFF6E7686),
+                c(0xFF7B83A3), c(0xFFD0456A), c(0xFF3A9A63), c(0xFFA87B1E), c(0xFF3D70B5), c(0xFF8265C8), c(0xFF13939D), c(0xFF141A26),
             ),
             light = true,
         ),

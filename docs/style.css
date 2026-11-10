@@ -1,11 +1,11 @@
 /* Origin Studio site: a plain document, not a landing-page template. */
 :root {
-  --paper: #f6f2ea;
-  --ink: #1d1b18;
-  --muted: #6a645a;
-  --rule: #d8d0c0;
-  --link: #b4410d;
-  --code-bg: #ece6d8;
+  --paper: #f5f7fc;
+  --ink: #141a26;
+  --muted: #5c6478;
+  --rule: #d5dbe6;
+  --link: #3e5f8a;
+  --code-bg: #e8edf5;
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -46,7 +46,7 @@ h1 {
   display: inline-block; background: var(--ink); color: var(--paper); text-decoration: none;
   padding: 11px 20px; border-radius: 4px; font-weight: 600; font-size: 16px;
 }
-.button:hover { background: #000; }
+.button:hover { background: #05070e; }
 .small { font-size: 15px; color: var(--muted); }
 .small a { color: inherit; }
 
@@ -76,7 +76,7 @@ footer a { color: inherit; }
 .article h1 { margin-top: 24px; }
 .article h2 { font: 600 27px/1.2 "Newsreader", Georgia, serif; margin: 46px 0 12px; }
 .article p { margin: 0 0 18px; }
-.article blockquote { margin: 22px 0; padding: 2px 0 2px 18px; border-left: 3px solid var(--ink); color: #3f3a33; }
+.article blockquote { margin: 22px 0; padding: 2px 0 2px 18px; border-left: 3px solid var(--ink); color: #4a5265; }
 .article .byline { color: var(--muted); font-size: 15px; margin: -4px 0 28px; }
 
 @media (max-width: 760px) {

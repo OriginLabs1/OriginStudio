@@ -127,7 +127,7 @@ private const val LongPasteChars = 1_200
 private const val LongPasteLines = 25
 
 /** The user's side of the conversation: a quiet raised surface, not a coloured bubble. */
-private val UserBubble = Color(0xFF1A1A1F)
+private val UserBubble = Color(0xFF161D30)
 
 /**
  * The native agent interface for ACP sessions: the agent runs inside the bundled Debian
@@ -727,7 +727,7 @@ private fun ImageThumb(image: AcpBlock.Image, size: Int, onRemove: (() -> Unit)?
                     .padding(4.dp)
                     .size(20.dp)
                     .clip(CircleShape)
-                    .background(Color(0xCC08080A))
+                    .background(Color(0xCC05070E))
                     .clickable(onClick = onRemove),
                 contentAlignment = Alignment.Center,
             ) {

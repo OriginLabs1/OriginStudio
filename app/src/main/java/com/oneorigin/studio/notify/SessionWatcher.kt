@@ -210,7 +210,7 @@ class KeepAliveService : android.app.Service() {
             )
             return androidx.core.app.NotificationCompat.Builder(context, Notifier.CHANNEL_RUNNING)
                 .setSmallIcon(R.drawable.ic_stat_termfold)
-                .setColor(0xFFFF7A2E.toInt())
+                .setColor(0xFF9EC1E6.toInt())
                 // Only sessions that are really doing something are counted; one idle at its
                 // prompt used to be reported as "running" for as long as it existed.
                 .setContentTitle(
