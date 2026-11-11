@@ -262,7 +262,6 @@ jobs:
               "companionSha256": "${COMPANION_SHA256}",
               "cli": "origin-cli-${VERSION}.tgz",
               "cliSha256": "${CLI_SHA256}",
-              "npm": "@originlabs/origin@${VERSION}",
               "npx": "npx github:OriginLabs1/OriginStudio",
               "sbom": "OriginStudio-${VERSION}.sbom.cdx.json",
               "sbomSha256": "${SBOM_SHA256}"

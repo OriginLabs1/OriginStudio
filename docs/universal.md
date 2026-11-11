@@ -50,7 +50,7 @@ node package/cli/origin.mjs doctor
 # or straight from GitHub
 npx github:OriginLabs1/OriginStudio doctor
 
-# if published to npm
+# if published to npm (not yet; use npx github:... above)
 npx @originlabs/origin doctor
 ```
 
