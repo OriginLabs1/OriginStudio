@@ -27,7 +27,8 @@
   "name": "Origin Studio",
   "applicationCategory": "DeveloperApplication",
   "operatingSystem": "Android 8.0+",
-  "description": "A full Debian Linux environment inside an Android app, with AI coding agents such as Claude Code, Codex, Gemini CLI, OpenCode and Pi. No root required.",
+  "description": "A full Debian Linux environment inside an Android app, with AI coding agents such as Claude Code, Codex, Gemini CLI, OpenCode and Pi. No root required. The same workspace opens in a zero-build companion and a dependency-free CLI.",
+  "softwareVersion": "0.0.9",
   "url": "https://originlabs1.github.io/OriginStudio/",
   "downloadUrl": "https://github.com/OriginLabs1/OriginStudio/releases/latest",
   "license": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -47,6 +48,7 @@
     <a class="name" href="./"><img src="media/logo.png" alt="" width="26" height="26">Origin Studio</a>
     <nav aria-label="Main">
       <a href="#install">Install</a>
+      <a href="#anywhere">Anywhere</a>
       <a href="how-it-works/">How it works</a>
       <a href="https://github.com/OriginLabs1/OriginStudio/blob/main/CONSTITUTION.md">Constitution</a>
       <a href="https://github.com/OriginLabs1/OriginStudio">GitHub</a>
@@ -56,7 +58,7 @@
   <main>
     <div class="open">
       <h1>A Linux terminal and coding agents on your Android tablet</h1>
-      <p class="lead">Origin Studio is an Android app that runs a real Debian system. You can use git, Node, Python and tools like Claude Code and Codex on a tablet, without a laptop and without root.</p>
+      <p class="lead">Origin Studio is an Android app that runs a real Debian system. You can use git, Node, Python and tools like Claude Code and Codex on a tablet, without a laptop and without root. The same workspace also opens on any screen through a zero-build companion.</p>
       <p class="get">
         <a class="button" id="dl" href="https://github.com/OriginLabs1/OriginStudio/releases/latest">Download the APK</a>
         <span class="small" id="dl-meta">Android 8 or newer</span>
@@ -66,7 +68,7 @@
 
     <figure class="hero-shot">
       <img src="screenshots/chat.png" alt="Origin Studio on a tablet showing Codex answering in the chat view" width="2944" height="1744" fetchpriority="high">
-      <figcaption>Codex answering in the chat view. The same screen works with Claude, OpenCode, Cursor and Pi. <span class="small">(Captured on v0.0.2; v0.0.3 uses the steel palette.)</span></figcaption>
+      <figcaption>Codex answering in the chat view. The same screen works with Claude, OpenCode, Cursor and Pi. <span class="small">(Captured on v0.0.2; v0.0.9 uses the steel palette and adds Fleet.)</span></figcaption>
     </figure>
 
     <section class="row" id="what">
@@ -83,6 +85,16 @@
         <p>The device stays in charge. Every project is plain files with a small, versioned manifest and a hash-chained history, so it opens without this app. Reading, editing, running local tools and exporting work offline, with no account and no vendor service.</p>
         <p>When you want more machine than a tablet, the same workspace can run on a host you already own: a laptop, a home server, a small VPS. Both sides speak one protocol, <code>origin.host/v1</code>. The host must disclose who operates it, where it is, how isolated it is, what it retains, what it costs and which capabilities it offers — before you use it. Remote execution is opt-in, and a failure is shown rather than quietly retried somewhere else.</p>
         <p>The reference host ships in the repository, has no dependencies, and is small enough to read: <a href="https://github.com/OriginLabs1/OriginStudio/tree/main/hosts/hub">hosts/hub</a>. The rules are in <a href="https://github.com/OriginLabs1/OriginStudio/blob/main/docs/strategy/DUAL-MODE.md">the dual-mode notes</a>, and the binding text is <a href="https://github.com/OriginLabs1/OriginStudio/blob/main/CONSTITUTION.md">the Constitution</a>.</p>
+      </div>
+    </section>
+
+    <section class="row" id="anywhere">
+      <h2>anywhere</h2>
+      <div class="body">
+        <p>v0.0.9 makes the workspace reach past the tablet. A <strong>zero-build companion</strong> is plain HTML, CSS and JavaScript: the host serves it, or you unzip it on any static server and install it to a home screen. It lists workspaces, verifies the hash-chained history, creates checkpoints and runs health checks. It has no framework, no account and no telemetry.</p>
+        <p>The <strong>origin CLI</strong> is one dependency-free Node file. It creates, verifies, lists, checkpoints and serves workspaces on a laptop, a home server or a small VPS, and it imports the reference host's own verification code, so a workspace made there opens unchanged in the app.</p>
+        <p><code>npx github:OriginLabs1/OriginStudio serve --root ~/origin</code></p>
+        <p>Inside the app, a new <strong>Fleet</strong> tab shows every session on the device, grouped by project, with honest live state and one tap to open. The release also ships a CycloneDX SBOM beside the signed APK, the companion zip and the CLI tarball. The full workflow is in <a href="https://github.com/OriginLabs1/OriginStudio/blob/main/docs/universal.md">the universal notes</a>.</p>
       </div>
     </section>
 
@@ -115,6 +127,7 @@
           <li>Download the APK from the <a id="dl2" href="https://github.com/OriginLabs1/OriginStudio/releases/latest">releases page</a> and open it. Android asks once to allow installs from your browser.</li>
           <li>Or add <code>github.com/OriginLabs1/OriginStudio</code> to <a href="https://github.com/ImranR98/Obtainium">Obtainium</a> and it keeps the app up to date.</li>
           <li>Open Origin Studio. The first start unpacks Debian, which takes a few seconds. The first shell then downloads the developer tools, a few hundred MB, so you need internet once.</li>
+          <li>On a laptop or a second screen, run <code>npx github:OriginLabs1/OriginStudio serve --root ~/origin</code> and open the host address. The companion is already there.</li>
         </ol>
         <p>You need Android 8 or newer, a 64-bit ARM or x86_64 device, and a few GB free.</p>
       </div>

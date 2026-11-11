@@ -18,7 +18,7 @@ document here contradicts it, the Constitution wins and the document is fixed.
 | [../DISTRIBUTION.md](../DISTRIBUTION.md) | Channels, verification, rollback and the rules a mirror must follow |
 | [../../contracts/README.md](../../contracts/README.md) | The versioned wire schemas and cross-language fixtures |
 | [../../hosts/hub/README.md](../../hosts/hub/README.md) | The dependency-free reference host |
-| [../adr/0001-qvac-local-ai.md](../adr/0001-qvac-local-ai.md) | Why QVAC is the reference local-AI engine |
+| [../adr/0001-qvac-local-ai.md](../adr/0001-qvac-local-ai.md) | Why QVAC was the reference local-AI engine (superseded for shipping by ADR-0010) |
 | [../adr/0002-execution-model.md](../adr/0002-execution-model.md) | Why `targetSdk` is pinned to 28, and what replaces it |
 | [../adr/0003-constitutional-supremacy.md](../adr/0003-constitutional-supremacy.md) | Why the Constitution wins and the dual-mode shift is binding |
 | [../adr/0004-host-protocol.md](../adr/0004-host-protocol.md) | One Host Protocol for local and remote execution |
@@ -27,6 +27,8 @@ document here contradicts it, the Constitution wins and the document is fixed.
 | [../adr/0007-capability-trust.md](../adr/0007-capability-trust.md) | Hash, signature and revocation before execution |
 | [../adr/0008-network-as-capability.md](../adr/0008-network-as-capability.md) | Deny-by-default egress and data-flow classes |
 | [../adr/0009-reference-host.md](../adr/0009-reference-host.md) | Bring-your-own host first, and why the reference host is Node |
+| [../adr/0010-lightweight-universal.md](../adr/0010-lightweight-universal.md) | Remove the bundled QVAC runtime; ship a lightweight universal layer |
+| [../universal.md](../universal.md) | Companion, CLI, host additions and release artifacts |
 
 ## The rule that keeps this honest
 
@@ -53,10 +55,9 @@ Conformance is claimed per profile, never in general.
 
 ## Current claim
 
-The tree after v0.0.3 claims **P0 (partial)** and **P1 (partial)**. P2 is
-**not claimed**: the engine ships and the availability gate works, but the
-Ask / Explain / Fix surface is not exposed and inference has not run on a
-physical arm64 device.
+The tree after v0.0.9 claims **P0 (partial)** and **P1 (partial)**. P2 is
+**deferred**: the bundled local-AI engine was removed in v0.0.9 (ADR-0010); the
+interface and the egress policy stay, and the surface returns when it ships.
 
 The dual-mode shift has two gates passed — **D1 Dual Open** and **D2 Handoff** —
 and three partially met: **D3 Offline**, **D4 Disclosure** and **D5 Sovereignty**.

@@ -13,7 +13,8 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { createServer } from "node:http";
 import { readFile, appendFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { dirname, join, resolve, sep } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 
 export const PROTOCOL = "origin.host/v1";
 export const PROTOCOL_MAJOR = 1;
@@ -23,6 +24,8 @@ export const MESSAGE_TYPES = new Set([
   "hello",
   "capabilities",
   "open_workspace",
+  "list_workspaces",
+  "list_events",
   "start_session",
   "run_turn",
   "stream_event",
@@ -32,6 +35,21 @@ export const MESSAGE_TYPES = new Set([
   "revoke",
   "health",
   "error",
+]);
+
+// The universal companion is a zero-build static app. It is served by the host so the
+// browser and the protocol share an origin, and it also works when copied to any static
+// web server. Only these files are exposed; the host never serves a user path.
+export const COMPANION_DIR = fileURLToPath(new URL("../../companion/", import.meta.url));
+
+const COMPANION_FILES = new Map([
+  ["/", ["index.html", "text/html; charset=utf-8"]],
+  ["/index.html", ["index.html", "text/html; charset=utf-8"]],
+  ["/app.js", ["app.js", "text/javascript; charset=utf-8"]],
+  ["/style.css", ["style.css", "text/css; charset=utf-8"]],
+  ["/manifest.webmanifest", ["manifest.webmanifest", "application/manifest+json; charset=utf-8"]],
+  ["/sw.js", ["sw.js", "text/javascript; charset=utf-8"]],
+  ["/icon.svg", ["icon.svg", "image/svg+xml"]],
 ]);
 
 export const GENESIS = "0".repeat(64);
@@ -191,7 +209,7 @@ export function capabilities(options) {
     availability,
     price,
     protocol,
-    capabilities: ["workspace.open", "workspace.checkpoint", "health"],
+    capabilities: ["workspace.open", "workspace.list", "workspace.events", "workspace.checkpoint", "health"],
     dataFlowClass,
   };
 }
@@ -211,7 +229,7 @@ function failure(request, code, message) {
   return reply(request ?? { id: "unknown", seq: 1 }, "error", { code, message });
 }
 
-async function appendEvent(dir, type, payload, at = new Date().toISOString()) {
+export async function appendEvent(dir, type, payload, at = new Date().toISOString()) {
   const eventsPath = join(dir, ".origin", "events.jsonl");
   let prev = GENESIS;
   let seq = 1;
@@ -239,18 +257,64 @@ export function createOriginHost(options = {}) {
   const disclosure = capabilities(options);
 
   const handler = async (request, response) => {
-    const send = (status, body) => {
+    const send = (status, body, extra = {}) => {
       const text = JSON.stringify(body);
       response.writeHead(status, {
         "content-type": "application/json; charset=utf-8",
         "content-length": Buffer.byteLength(text),
         "cache-control": "no-store",
+        "access-control-allow-origin": "*",
+        "access-control-allow-headers": "authorization, content-type",
+        "access-control-allow-methods": "GET, POST, OPTIONS",
+        "x-content-type-options": "nosniff",
+        ...extra,
       });
       response.end(text);
     };
 
+    const sendFile = async (status, file, type) => {
+      try {
+        const bytes = await readFile(join(COMPANION_DIR, file));
+        response.writeHead(status, {
+          "content-type": type,
+          "content-length": bytes.length,
+          "cache-control": file === "sw.js" ? "no-cache" : "public, max-age=300",
+          "x-content-type-options": "nosniff",
+        });
+        response.end(bytes);
+      } catch {
+        send(404, { error: "not_found" });
+      }
+    };
+
+    if (request.method === "OPTIONS") {
+      response.writeHead(204, {
+        "access-control-allow-origin": "*",
+        "access-control-allow-headers": "authorization, content-type",
+        "access-control-allow-methods": "GET, POST, OPTIONS",
+        "access-control-max-age": "86400",
+      });
+      return response.end();
+    }
+
     if (request.method === "GET" && request.url === "/health") {
-      return send(200, { ok: true, hostId: disclosure.hostId, protocol: PROTOCOL, version: VERSION });
+      return send(200, {
+        ok: true,
+        hostId: disclosure.hostId,
+        protocol: PROTOCOL,
+        version: VERSION,
+        authRequired: Boolean(token),
+      });
+    }
+
+    // Serve the universal companion from the same origin as the protocol. This is what makes
+    // `origin serve` a complete local product: open the printed URL on a phone, tablet or
+    // desktop and the workspace list works without a second service.
+    if (request.method === "GET" || request.method === "HEAD") {
+      const pathname = new URL(request.url, "http://host").pathname;
+      const key = pathname.startsWith("/companion/") ? pathname.slice("/companion".length) : pathname;
+      const asset = COMPANION_FILES.get(key === "" ? "/" : key);
+      if (asset) return sendFile(200, asset[0], asset[1]);
     }
 
     if (request.method !== "POST" || request.url !== "/origin/host/v1") {
@@ -315,6 +379,65 @@ export function createOriginHost(options = {}) {
               lastHash: result.lastHash,
               lease: lease && new Date(lease.expiresAt) > new Date() ? lease : null,
               verified: true,
+            }),
+          );
+        }
+
+        case "list_workspaces": {
+          const dirs = await listWorkspaces(root);
+          const workspaces = [];
+          for (const dir of dirs) {
+            const result = await verifyWorkspace(dir);
+            const rel = relative(resolve(root), dir).split(sep).join("/");
+            let checkpointCount = 0;
+            try {
+              checkpointCount = (await readdir(join(dir, ".origin", "checkpoints"))).filter(
+                (name) => name.endsWith(".json"),
+              ).length;
+            } catch {
+              checkpointCount = 0;
+            }
+            workspaces.push({
+              path: rel,
+              workspaceId: result.manifest?.id ?? null,
+              name: result.manifest?.name ?? rel,
+              verified: result.ok,
+              error: result.error ?? null,
+              manifestHash: result.manifestHash ?? null,
+              eventCount: result.eventCount ?? 0,
+              lastHash: result.lastHash ?? null,
+              checkpointCount,
+              lease: result.lease ?? null,
+            });
+          }
+          workspaces.sort((a, b) => a.name.localeCompare(b.name));
+          return send(200, reply(envelope, "stream_event", { workspaces }));
+        }
+
+        case "list_events": {
+          const dir = resolveWorkspace(root, envelope.payload?.path ?? ".");
+          const result = await verifyWorkspace(dir);
+          if (!result.ok) {
+            return send(
+              200,
+              reply(envelope, "error", { code: "workspace_invalid", message: result.error }),
+            );
+          }
+          const limit = Math.min(Math.max(Number(envelope.payload?.limit ?? 50), 1), 500);
+          const eventsPath = join(dir, ".origin", "events.jsonl");
+          let events = [];
+          if (existsSync(eventsPath)) {
+            const lines = (await readFile(eventsPath, "utf8"))
+              .split("\n")
+              .filter((line) => line.trim() !== "");
+            events = lines.slice(-limit).map((line) => JSON.parse(line));
+          }
+          return send(
+            200,
+            reply(envelope, "stream_event", {
+              workspaceId: result.manifest.id,
+              verified: true,
+              events,
             }),
           );
         }

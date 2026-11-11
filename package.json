@@ -1,0 +1,43 @@
+{
+  "name": "@originlabs/origin",
+  "version": "0.0.9",
+  "description": "Origin Studio's universal companion: create, verify, checkpoint and serve portable workspaces from any machine with Node.",
+  "type": "module",
+  "bin": {
+    "origin": "./cli/origin.mjs"
+  },
+  "files": [
+    "cli/",
+    "hosts/hub/",
+    "companion/",
+    "contracts/",
+    "docs/universal.md",
+    "README.md",
+    "LICENSE",
+    "package.json"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test cli/test/*.test.mjs hosts/hub/test/*.test.js",
+    "doctor": "node cli/origin.mjs doctor"
+  },
+  "keywords": [
+    "origin",
+    "workspace",
+    "agent",
+    "terminal",
+    "local-first",
+    "sovereign"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OriginLabs1/OriginStudio.git"
+  },
+  "homepage": "https://originlabs1.github.io/OriginStudio/",
+  "bugs": {
+    "url": "https://github.com/OriginLabs1/OriginStudio/issues"
+  },
+  "license": "Apache-2.0"
+}

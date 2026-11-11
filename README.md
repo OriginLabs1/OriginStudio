@@ -22,9 +22,11 @@ it. Where they disagree, the Constitution wins.
 - **Native Code Editing** - Built-in file browser and editor with syntax highlighting
 - **Integrated Terminal** - Full Linux terminal with PRoot support
 - **Portable Workspaces** - Every project carries a plain-JSON manifest and a hash-chained history; export opens without Origin Studio
+- **Universal Companion** - A zero-build installable web app that opens the same workspace from any screen, served by the host or any static server
+- **`origin` CLI** - Dependency-free Node commands to init, verify, list, checkpoint and serve workspaces anywhere
+- **Fleet** - Every session on the device in one place, grouped by project, with honest live state
 - **Local + Remote Execution** - One versioned Host Protocol (`origin.host/v1`) for the device and a host you control, with explicit disclosure, leases and handoff
 - **Deny-by-default Network** - Egress is a capability with a purpose, a data-flow class and a tamper-evident ledger
-- **Local AI Foundation** - Pinned, hash-verified QVAC runtime for the upcoming offline Ask/Explain/Fix surface (arm64, Android 10+)
 - **AI Agent Support** - Native chat with ACP agents (Claude, Codex, OpenCode, and more)
 - **Browser for Testing** - Built-in browser for dev servers and web pages
 - **Project Management** - Open, create, and manage projects seamlessly
@@ -42,7 +44,6 @@ Every release ships a signed APK, a SHA-256 checksum, the signing certificate fi
 ## Requirements
 
 - Android 8.0+ (API 26+), 64-bit ARM (arm64-v8a) or x86_64
-- Local AI runtime: 64-bit ARM (arm64-v8a) and Android 10+ (API 29+)
 - 4 GB RAM or more (optimized for modest hardware)
 - Several GB of free storage for the Debian environment and developer tools
 
@@ -61,8 +62,8 @@ python3 tools/fetch-ca-bundle.py
 A signed release build additionally needs the release keystore at `termfold-release.jks` and the `TERMFOLD_STORE_PASSWORD` / `TERMFOLD_KEY_PASSWORD` environment variables. Release versions are supplied by the tag-driven GitHub Actions workflow in `.github/workflows/release.yml`:
 
 ```bash
-git tag v0.0.3
-git push origin v0.0.3
+git tag v0.0.9
+git push origin v0.0.9
 ```
 
 See `docs/` for the engineering notes and `THIRD_PARTY_NOTICES.md` for bundled components.
@@ -90,12 +91,31 @@ ORIGIN_WORKSPACE_ROOT="$HOME/origin" ORIGIN_HOST_TOKEN="$(openssl rand -hex 16)"
 See [`docs/strategy/DUAL-MODE.md`](docs/strategy/DUAL-MODE.md) for the gates,
 disclosure fields and verification steps.
 
+## Use it anywhere
+
+The same workspace works without the app:
+
+```bash
+# zero-build companion, served by the host
+npx github:OriginLabs1/OriginStudio serve --root ~/origin
+
+# or from the release tarball (unpacks into package/)
+tar -xzf origin-cli-0.0.9.tgz
+node package/cli/origin.mjs init ~/origin/demo --name "Demo"
+node package/cli/origin.mjs verify ~/origin/demo
+node package/cli/origin.mjs checkpoint ~/origin/demo
+```
+
+The companion is plain HTML/CSS/JS: unzip it on any static server, or open the host URL.
+It has no build step, no framework and no runtime dependency. See
+[`docs/universal.md`](docs/universal.md).
+
 ## Conformance
 
-`v0.0.3` plus this tree claims **P0 (partial)** and **P1 (partial)**, with P3/P4
-in progress. P2 is **not claimed**: the engine ships and the availability gate
-works, but the Ask/Explain/Fix surface is not exposed and inference has not run on
-a physical arm64 device. The authoritative statement is
+`v0.0.9` claims **P0 (partial)** and **P1 (partial)**, with P3/P4 in progress. P2 is
+**not claimed**: the bundled local-AI runtime was removed in this line to keep the app
+lightweight (ADR-0010); the `LocalAiEngine` boundary stays, and the Ask/Explain/Fix surface
+returns when it ships. The authoritative statement is
 [`docs/strategy/REQUIREMENTS.md`](docs/strategy/REQUIREMENTS.md); every gap is in
 [`docs/strategy/DEVIATIONS.md`](docs/strategy/DEVIATIONS.md).
 
@@ -107,6 +127,7 @@ a physical arm64 device. The authoritative statement is
 - `RELEASING.md` — how a signed release is cut and verified.
 - `docs/DISTRIBUTION.md` — channels, device tiers, verification and rollback.
 - [`docs/strategy/DUAL-MODE.md`](docs/strategy/DUAL-MODE.md) — local and remote execution, gates and host operation.
+- [`docs/universal.md`](docs/universal.md) — companion, CLI, host additions and release artifacts.
 - [`contracts/README.md`](contracts/README.md) — the wire schemas and fixtures.
 - `docs/adr/` — ADR-0001 … ADR-0009.
 - `docs/strategy/` — governance, threat model, requirements register, deviations and personas.

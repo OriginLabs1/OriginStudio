@@ -43,33 +43,33 @@
 ## 3. Trust boundaries
 
 ```
-UI (Compose)  ──1──  app process  ──2──  :qvac_worker (Binder, isolated process)
+UI (Compose)  ──1──  app process
                           │
-                          3  (ptrace; same UID; NO security boundary)
+                          2  (ptrace; same UID; NO security boundary)
                           ▼
                     PRoot guest (Debian, user-installed tools, agents)
                           │
-                          4                       5
+                          3                       4
                           ▼                       ▼
                      network (TLS)          SAF / shared storage
                           ▲
-                          6
+                          5
                     GitHub Releases / update channel
                            │
-                           8  (origin.host/v1, explicit disclosure)
+                           6  (origin.host/v1, explicit disclosure)
                            ▼
                  remote host (hub / user-rented machine)
 
 build host ──7── release key ──7── signed APK ──7── user device
 ```
 
-**Boundary 3 is the important one.** PRoot uses `ptrace` to translate syscalls.
+**Boundary 2 is the important one.** PRoot uses `ptrace` to translate syscalls.
 It is a *compatibility* layer, not a container. Code in the guest runs with the
 app's UID and can read the app's private data. Any statement that the guest is
 "isolated" or "sandboxed" is false and must not appear in the UI, the docs or the
 release notes.
 
-**Boundary 8 is new and explicit.** A remote host is a different operator's
+**Boundary 6 is new and explicit.** A remote host is a different operator's
 machine unless the user says otherwise. It is used only after disclosure, only
 under a lease, and only for the capabilities it advertises. The app may not fall
 back to it silently.
@@ -90,7 +90,7 @@ back to it silently.
 | T10 | Another app reads exported files | A6 | SAF is user-mediated; the app does not export to shared storage without the user picking a destination | Met |
 | T11 | Clipboard leaks secrets | A6 | No automatic clipboard read; copy is user-initiated | Met |
 | T12 | Update check leaks usage | A4 | Only a GET to the public GitHub releases API; no identifier is sent | Met |
-| T13 | Supply-chain substitution | A3 | QVAC Maven ZIP pinned by SHA-256 and vendored; `bare-rpc-kotlin` restricted to `com.github.holepunchto.*`; Gradle dependency verification is not enabled | Partial |
+| T13 | Supply-chain substitution | A3 | JitPack is restricted to `com.github.termux.*`; the release is signed and every artifact is checksummed; a CycloneDX SBOM ships per release; Gradle dependency verification is not enabled | Partial |
 | T14 | Compromised release key | A5, boundary 7 | Key held offline, secrets only in CI; no rotation plan yet | Partial |
 | T15 | Malicious agent binary | A2 | The user installs it deliberately; the app does not auto-run agents | Accepted risk (disclosed) |
 | T16 | Terminal transcript contains secrets | A8 | Stored in app-private storage; no encryption at rest beyond the OS | Accepted risk |

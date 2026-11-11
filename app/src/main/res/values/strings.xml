@@ -230,7 +230,33 @@
     <string name="cd_add_session">Add session</string>
     <string name="cd_send">Send</string>
     <string name="cd_home">Projects</string>
+    <string name="cd_fleet">Fleet</string>
     <string name="cd_settings">Settings</string>
+
+    <!-- Fleet: every session on the device, grouped by project. -->
+    <string name="fleet_title">Fleet</string>
+    <string name="fleet_subtitle">Every session on this device, in one place.</string>
+    <string name="fleet_empty">No sessions yet</string>
+    <string name="fleet_empty_hint">Open a project and add a session, or start one from the + button. Everything stays on this device.</string>
+    <string name="fleet_projects">Projects</string>
+    <string name="fleet_sessions">Sessions</string>
+    <string name="fleet_running">Running</string>
+    <string name="fleet_working">Working</string>
+    <string name="fleet_status_working">Working</string>
+    <string name="fleet_status_running">Running</string>
+    <string name="fleet_status_idle">Idle</string>
+
+    <!-- First-run welcome. Shown once, after the Linux environment is ready. -->
+    <string name="welcome_title">Your studio, in your pocket</string>
+    <string name="welcome_body">A real Linux workspace on your phone. No account, no server, no build step — just your projects and the agents you already use.</string>
+    <string name="welcome_point_local_title">Local by default</string>
+    <string name="welcome_point_local_body">Files, shells and sessions live on this device. Nothing is uploaded to run.</string>
+    <string name="welcome_point_agents_title">Your agents, one fleet</string>
+    <string name="welcome_point_agents_body">Run Claude Code, OpenCode, Pi or a plain shell side by side, and watch them from the Fleet tab.</string>
+    <string name="welcome_point_universal_title">Works everywhere</string>
+    <string name="welcome_point_universal_body">The same workspace is reachable from the companion web app, and the origin CLI keeps it verifiable.</string>
+    <string name="welcome_start">Start building</string>
+    <string name="welcome_restore">Already have a workspace? Import it from Settings.</string>
 
     <!-- First-run setup of the bundled Linux environment. -->
     <string name="migrate_title">Switch to Debian</string>

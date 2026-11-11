@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
-
-    <!-- The QVAC runtime declares minSdk 29 while this app deliberately stays at 26 so the
-         workspace runs on older devices and PRoot keeps its targetSdk 28 execution model.
-         The merger is told to accept the wider library; QvacEngine refuses to touch any QVAC
-         class unless the device is API 29+ arm64, so the older path never loads it. -->
-    <uses-sdk tools:overrideLibrary="io.tether.qvac.sdk,io.tether.qvac.sdk.barekit,to.holepunch.barerpc,to.holepunch.compactencoding" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Needed so the bundled Debian environment can reach apt, pip, npm and the agents. Projects
          live in the app's own storage; files from elsewhere come in through the system pickers,

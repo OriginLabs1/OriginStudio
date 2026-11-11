@@ -38,6 +38,7 @@ import com.oneorigin.studio.ui.theme.Motion
 /** Bottom navigation destinations. */
 enum class NavTab(val icon: ImageVector, val inactiveIcon: ImageVector, val labelRes: Int) {
     FOLDERS(OriginStudioIcons.Home, OriginStudioIcons.Home, R.string.cd_home),
+    FLEET(OriginStudioIcons.Fleet, OriginStudioIcons.Fleet, R.string.cd_fleet),
     FILES(OriginStudioIcons.Files, OriginStudioIcons.Files, R.string.cd_files),
     SETTINGS(OriginStudioIcons.Gear, OriginStudioIcons.Gear, R.string.cd_settings),
 }

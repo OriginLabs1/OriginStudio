@@ -62,7 +62,7 @@ Profile key: **P0** Core · **P1** Workspace · **P2** Intelligence ·
 | OS-TRUST-005 | Downgrade is blocked | Test | Met | Android same-key version rule; update flow only offers newer |
 | OS-TRUST-006 | Capability and release revocation is verifiable offline with an expiry | Test | Partial | Revocation ids are checked offline; no signed record with an expiry yet |
 | OS-TRUST-007 | A release can be rebuilt from its tag, with non-determinism documented | Bench | Partial | CI builds from tags; no bit-for-bit comparison |
-| OS-TRUST-008 | A machine-readable SBOM ships with each release | Inspection | Not met | Third-party notices only |
+| OS-TRUST-008 | A machine-readable SBOM ships with each release | Inspection | Met | `tools/make-sbom.mjs`; the release workflow attaches `*.sbom.cdx.json` |
 | OS-REL-001 | CI refuses to publish an unsigned or unverifiable APK | Inspection | Met | `release.yml` verification step |
 | OS-REL-002 | Supported devices and known limits are published with each release | Inspection | Partial | Release notes + `ANDROID-COMPATIBILITY.md`; no measured matrix |
 | OS-PRIV-001 | No analytics, telemetry, advertising or silent egress | Inspection | Met | No such dependency; update check is a plain GitHub GET |
@@ -89,16 +89,20 @@ Profile key: **P0** Core · **P1** Workspace · **P2** Intelligence ·
 
 ## P2 — Intelligence
 
+**Deferred in v0.0.9.** The bundled QVAC engine was removed to keep the app lightweight
+(ADR-0010); the `LocalAiEngine` boundary and the deny-by-default egress policy stay. These
+rows are kept, not deleted, so the next engine is measured against the same bar.
+
 | ID | Requirement | Verify | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| OS-AI-001 | No mandatory model, vendor or account | Inspection | Met | Local engine; external agents optional |
-| OS-AI-002 | After one model download, inference works offline | Test | Partial | Engine ships; physical-device run outstanding |
+| OS-AI-001 | No mandatory model, vendor or account | Inspection | Met | Local engine removed; external agents optional |
+| OS-AI-002 | After one model download, inference works offline | Test | Not met | No bundled engine in v0.0.9 |
 | OS-AI-003 | Model output is never applied without diff and approval | Test | Not met | Ask/Explain/Fix surface not exposed |
-| OS-AI-004 | Streaming and cancellation are user-visible | Demo | Partial | Engine supports it; no UI |
-| OS-AI-005 | A model whose hash does not match is refused | Test | Partial | Manifest carries SHA-256; not yet verified on device |
-| OS-AI-006 | Model size, licence, source and deletion are disclosed before download | Demo | Partial | Gate exists; no download UI |
-| OS-AI-007 | No egress from the AI path without a per-session grant | Test | Partial | `EgressPolicy` is deny-by-default with tests; the AI path is not wired through it yet |
-| OS-AI-008 | Unsupported hardware shows honest unavailability | Test | Met | `LocalAiGateTest`; runtime gate |
+| OS-AI-004 | Streaming and cancellation are user-visible | Demo | Not met | No engine or UI |
+| OS-AI-005 | A model whose hash does not match is refused | Test | Not met | No download path |
+| OS-AI-006 | Model size, licence, source and deletion are disclosed before download | Demo | Not met | No download path |
+| OS-AI-007 | No egress from the AI path without a per-session grant | Test | Partial | `EgressPolicy` is deny-by-default with tests; no AI path exists to wire |
+| OS-AI-008 | Unsupported hardware shows honest unavailability | Test | Not met | No runtime to gate |
 | OS-AI-009 | Permission checks live in tool handlers, not in the model | Inspection | Not met | Handlers not shipped |
 
 ## P3 / P4 / P5 — not claimed

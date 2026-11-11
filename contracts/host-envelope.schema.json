@@ -14,6 +14,8 @@
         "hello",
         "capabilities",
         "open_workspace",
+        "list_workspaces",
+        "list_events",
         "start_session",
         "run_turn",
         "stream_event",

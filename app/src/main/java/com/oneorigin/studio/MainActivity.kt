@@ -89,6 +89,7 @@ import com.oneorigin.studio.ui.screens.AgentSessionScreen
 import com.oneorigin.studio.ui.screens.ConfirmDialog
 import com.oneorigin.studio.ui.screens.FileManagerScreen
 import com.oneorigin.studio.ui.screens.FilesWorkspace
+import com.oneorigin.studio.ui.screens.FleetScreen
 import com.oneorigin.studio.ui.screens.FolderDetailScreen
 import com.oneorigin.studio.ui.screens.FoldersScreen
 import com.oneorigin.studio.ui.screens.OptionsSheet
@@ -98,6 +99,7 @@ import com.oneorigin.studio.ui.screens.SearchField
 import com.oneorigin.studio.ui.screens.SettingsScreen
 import com.oneorigin.studio.ui.screens.TerminalScreen
 import com.oneorigin.studio.ui.screens.TextPromptDialog
+import com.oneorigin.studio.ui.screens.WelcomeScreen
 import com.oneorigin.studio.ui.theme.Palette
 import com.oneorigin.studio.ui.theme.OriginStudioTheme
 import com.oneorigin.studio.ui.theme.Motion
@@ -116,7 +118,7 @@ class MainActivity : OriginStudioActivity() {
 
         setContent {
             OriginStudioTheme {
-                OriginStudioRoot(viewModel)
+                OriginStudioRoot(viewModel, showWelcome = true)
             }
         }
     }
@@ -212,10 +214,14 @@ private sealed interface OptionsTarget {
 }
 
 @Composable
-internal fun OriginStudioRoot(viewModel: AppViewModel) {
+internal fun OriginStudioRoot(viewModel: AppViewModel, showWelcome: Boolean = false) {
     val data by viewModel.folders.collectAsStateWithLifecycle()
     val shell by viewModel.shell.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val onboarding = remember { context.getSharedPreferences("onboarding", android.content.Context.MODE_PRIVATE) }
+    var welcomeDone by rememberSaveable {
+        mutableStateOf(!showWelcome || onboarding.getBoolean("welcome_seen", false))
+    }
 
     var destination by remember { mutableStateOf<Destination>(Destination.Tabs) }
 
@@ -349,6 +355,18 @@ internal fun OriginStudioRoot(viewModel: AppViewModel) {
         ShellState.READY, ShellState.UNSUPPORTED -> Unit
     }
 
+    // A brand-new install gets one short welcome, once the workspace is actually ready. It is
+    // the only onboarding: no account, no tour, and it never appears again.
+    if (!welcomeDone) {
+        WelcomeScreen(
+            onStart = {
+                onboarding.edit().putBoolean("welcome_seen", true).apply()
+                welcomeDone = true
+            },
+        )
+        return
+    }
+
     val windowWidth = currentWindowWidth()
     // Animations are slightly slower on a tablet, where surfaces are bigger and travel further.
     androidx.compose.runtime.SideEffect { Motion.configure(windowWidth.isWide) }
@@ -444,6 +462,15 @@ internal fun OriginStudioRoot(viewModel: AppViewModel) {
                                 )
 
                                 NavTab.FILES -> FileManagerScreen(wide = windowWidth.isWide)
+
+                                NavTab.FLEET -> FleetScreen(
+                                    folders = data.folders,
+                                    onOpenSession = { folderId, sessionId ->
+                                        destination = Destination.Terminal(folderId, sessionId)
+                                    },
+                                    onAddProject = { newProject = true },
+                                    wide = windowWidth.isWide,
+                                )
 
                                 NavTab.SETTINGS -> SettingsScreen(
                                     shellState = shell.state,

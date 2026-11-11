@@ -2,7 +2,7 @@
 
 **Canonical source:** <https://github.com/OriginLabs1/OriginStudio/releases>
 **Package:** `com.oneorigin.studio` · **Licence:** Apache-2.0
-**Current line:** `v0.0.3`
+**Current line:** `v0.0.9`
 
 Every channel below points at the same signed artifact. No channel re-signs,
 rebuilds or silently replaces an APK.
@@ -37,14 +37,13 @@ under a separate application ID. It is not a goal.
 | Requirement | State |
 | --- | --- |
 | FOSS application code | Yes — Apache-2.0 |
-| All dependencies FOSS and buildable from source | Partial — QVAC (Apache-2.0) and Termux libs are prebuilt; JitPack supplies binaries |
+| All dependencies FOSS and buildable from source | Partial — Termux libs are prebuilt and JitPack supplies binaries; no QVAC runtime ships |
 | No proprietary blobs | Partial — Debian rootfs and agent installers need review |
 | Reproducible build | Not proven |
 | No anti-features | Model downloads and non-free model licences need disclosure |
 
-Reassess after: an SBOM per release, a build-from-source path for the JitPack
-libraries, and a documented rootfs provenance. Until then, do not tell users
-F-Droid is coming.
+Reassess after: a build-from-source path for the JitPack libraries and a documented
+rootfs provenance. Until then, do not tell users F-Droid is coming.
 
 ### IzzyOnDroid
 
@@ -59,11 +58,14 @@ manifest, the signing certificate, a description and a licence. Do it after
 | --- | --- |
 | `OriginStudio-<version>.apk` | The app |
 | `OriginStudio-<version>.apk.sha256` | Per-file checksum |
+| `OriginCompanion-<version>.zip` | Zero-build web app; unzip anywhere static |
+| `origin-cli-<version>.tgz` | Dependency-free CLI and reference host |
+| `OriginStudio-<version>.sbom.cdx.json` | CycloneDX SBOM for the release |
 | `SHA256SUMS` | All artifacts in one file |
 | `signing-certificate.txt` | `apksigner` output, full certificate |
-| `release-manifest.json` | Machine-readable version, size, hash, certificate |
+| `release-manifest.json` | Machine-readable version, size, hash, certificate and universal artifacts |
 | Release notes | What changed, device tiers, known limitations, rollback |
-| Source archive (tag) | The exact tree, including `:core`, `contracts/` and `hosts/hub/` |
+| Source archive (tag) | The exact tree, including `:core`, `contracts/`, `hosts/hub/`, `cli/` and `companion/` |
 
 The source archive is part of the distribution, not a courtesy. It carries the
 Constitution, the requirements register, the contracts and the reference host, so
@@ -78,6 +80,12 @@ The dual-mode shift is distributed as source, deliberately:
 | `:core` | `core/` in the tagged tree | Built by Gradle; plain JVM, no Android imports |
 | Contracts | `contracts/` | JSON Schema 2020-12 plus cross-language fixtures |
 | Reference host | `hosts/hub/` | `node hosts/hub/server.js`; no dependencies |
+| Companion | `companion/` | Served by the host, or unzipped on any static server; no build step |
+| CLI | `cli/` | `node cli/origin.mjs`, the release tarball, or `npx github:OriginLabs1/OriginStudio` |
+
+The universal artifacts are first-class release assets, not source-only extras. They are
+checksummed with the APK and described in `release-manifest.json`. See
+[`universal.md`](universal.md).
 | Constitution | `CONSTITUTION.md` | Linked from the README and the website |
 
 A downstream host implementation is conformant only when it passes the same
@@ -107,22 +115,23 @@ cd hosts/hub && npm test
 
 | Tier | Device | What runs |
 | --- | --- | --- |
-| **A (MLP)** | arm64, Android 10+ (API 29+), 4 GB RAM min / 6 GB recommended, ≥ 5 GB free | Full workspace + local AI |
-| **B (compat)** | Android 8–9, arm64 or x86_64, 4 GB recommended | Core workspace; local AI shown as unavailable |
+| **A** | arm64, Android 8+ (API 26+), 4 GB RAM min / 6 GB recommended, ≥ 5 GB free | Full workspace |
+| **B** | x86_64, Android 8+ (API 26+), 4 GB recommended | Full workspace |
 | **C (future)** | Devices with a real VM (AVF/microVM) | Stronger isolation for untrusted execution |
 
-`minSdk 26`, `targetSdk 28`, two ABIs: `arm64-v8a` and `x86_64`. The local-AI
-runtime is `arm64-v8a` only and does not run on emulators.
+`minSdk 26`, `targetSdk 28`, two ABIs: `arm64-v8a` and `x86_64`. Every tier gets the same
+capabilities; the universal companion and CLI add desktop and second-screen reach without
+a separate build.
 
 ## Release procedure
 
-1. `python3 tools/fetch-qvac.py` — hash-verified, git-ignored.
+1. `python3 tools/fetch-shell-runtime.py && python3 tools/fetch-ca-bundle.py`
 2. `./gradlew :core:test` and `./gradlew :app:testDebugUnitTest`
-3. `node tools/validate-contracts.mjs && node tools/check-evidence.mjs`
-4. `(cd hosts/hub && npm test)`
+3. `node tools/validate-contracts.mjs && node tools/check-evidence.mjs && node tools/check-companion.mjs`
+4. `node --test cli/test/*.test.mjs hosts/hub/test/*.test.js`
 5. `ORIGIN_VERSION_NAME=<v> ORIGIN_VERSION_CODE=<code> ./gradlew :app:assembleRelease`
-6. Inspect the APK: `minSdk 26`, `targetSdk 28`, `com.oneorigin.studio.ai` present, signed by the release certificate.
-7. `git tag v<version> && git push origin v<version>` — CI builds, signs, verifies and publishes.
+6. Inspect the APK: `minSdk 26`, `targetSdk 28`, no `com.oneorigin.studio.ai` payload, signed by the release certificate.
+7. `git tag v<version> && git push origin v<version>` — CI builds, signs, verifies and publishes the APK, companion, CLI and SBOM.
 8. Update the website only by linking to the new release.
 9. Announce, with the known limitations from `REQUIREMENTS.md` and the claimed profile.
 

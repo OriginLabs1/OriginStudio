@@ -39,20 +39,18 @@ either.
 | Coil (image loading, SVG) | Apache-2.0 |
 | Apache Commons Compress | Apache-2.0 |
 
-## Local AI (`app/src/main/java/com/oneorigin/studio/ai/`)
+## Universal layer (`companion/`, `cli/`, `hosts/hub/`)
 
 | Component | Version | License | Source |
 | --- | --- | --- | --- |
-| QVAC Android LLM SDK (`io.tether:qvac-sdk-android-llm`) | 0.23.0 | Apache-2.0 | [tetherto/qvac](https://github.com/tetherto/qvac) |
-| QVAC Kotlin client and BareKit worker | 0.23.0 | Apache-2.0 | [tetherto/qvac](https://github.com/tetherto/qvac) |
-| bare-rpc-kotlin and compact-encoding-kotlin | v0.3.0 / v0.2.0 | Apache-2.0 | [holepunchto/bare-rpc](https://github.com/holepunchto/bare-rpc) |
-| Qwen3 0.6B (reference model, downloaded on demand) | Q4 | Apache-2.0 | [Qwen/Qwen3-0.6B](https://huggingface.co/Qwen/Qwen3-0.6B) |
+| Origin Companion | in-tree | Apache-2.0 | this repository |
+| `origin` CLI and reference host | in-tree | Apache-2.0 | this repository |
+| Node.js (external prerequisite, not bundled) | 20+ | MIT | [nodejs.org](https://nodejs.org) |
 
-The QVAC runtime is not resolved from a mutable remote. `tools/fetch-qvac.py` downloads the
-pinned `qvac-sdk-android-llm-0.23.0-maven.zip` release asset, verifies its SHA-256 against
-`gradle.properties`, and only then unpacks it for Gradle. The model is **not bundled**: it is
-downloaded by the user, verified by QVAC, and can be removed without affecting the workspace.
-Model licenses are separate from the SDK license; the reference model above is Apache-2.0.
+The companion is plain HTML, CSS and JavaScript with no bundled framework. The CLI
+and host import only Node's standard library, so the universal layer has no
+third-party runtime dependencies and no lockfile to audit. Node.js is required to
+run them and is installed by the user.
 
 ## Fonts (`app/src/main/res/font/`)
 

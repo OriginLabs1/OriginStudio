@@ -341,6 +341,20 @@ object OriginStudioIcons {
         )
     }
 
+    /** Two stacked windows with a prompt: every session, across every project. */
+    val Fleet: ImageVector by lazy {
+        stroked(
+            "Fleet",
+            "M8.2,4.4 H17.4 C18.5,4.4 19.4,5.3 19.4,6.4 V13.6",
+            "M5.6,8.4 H15.2 C16.3,8.4 17.2,9.3 17.2,10.4 V17.6 " +
+                "C17.2,18.7 16.3,19.6 15.2,19.6 H5.6 C4.5,19.6 3.6,18.7 3.6,17.6 V10.4 " +
+                "C3.6,9.3 4.5,8.4 5.6,8.4 Z",
+            "M6.8,12.4 L9,14.4 L6.8,16.4",
+            "M11,16.4 H14.2",
+            width = 1.7f,
+        )
+    }
+
     /** A disk: save. */
     val Save: ImageVector by lazy {
         stroked(

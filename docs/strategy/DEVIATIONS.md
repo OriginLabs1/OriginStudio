@@ -27,13 +27,14 @@ No gate may be reported as passed until its row is **Met** in
 
 | ID | Gap | Why it is open | Owner | Expiry |
 | --- | --- | --- | --- | --- |
-| OS-AI-003 | No diff → approve → apply → undo flow | Ask/Explain/Fix surface is not exposed | M | MLP |
-| OS-AI-007 | AI path is not yet routed through the egress policy | `EgressPolicy` exists; the surface that would call it does not | M | MLP |
+| OS-AI-003 | No diff → approve → apply → undo flow | Ask/Explain/Fix surface is not exposed; P2 deferred by ADR-0010 | M | MLP |
+| OS-AI-007 | AI path is not yet routed through the egress policy | `EgressPolicy` exists; no AI surface calls it | M | MLP |
 | OS-AI-009 | Permission checks are not yet in tool handlers | Handlers ship with the surface | M | MLP |
-| OS-AI-002 | No physical-device offline inference run | Requires an arm64 device; QVAC does not run on emulators | M | MLP |
-| OS-AI-005 | Model hash not verified on device | Same run | M | MLP |
+| OS-AI-002 | No bundled offline inference | QVAC runtime removed in v0.0.9 to keep the app lightweight (ADR-0010) | M | MLP |
+| OS-AI-005 | Model hash not verified on device | No download path in v0.0.9 | M | MLP |
 | OS-AI-006 | Download disclosure UI unfinished | Same surface | M | MLP |
-| OS-AI-004 | Streaming and cancellation have no user-visible UI | Engine only | M | MLP |
+| OS-AI-004 | Streaming and cancellation have no user-visible UI | No engine or UI in v0.0.9 | M | MLP |
+| OS-AI-008 | No runtime gate is exercised | No runtime ships; the interface returns with the surface | M | MLP |
 | OS-UX-001 | Five-minute onboarding not measured | Needs the five-user protocol | M | MLP |
 | OS-UX-002 | No cold-start budget or baseline device | Harness not built | M | MLP + 2 weeks |
 | OS-EXEC-004 | No published memory/battery budget | Harness not built | M | MLP + 2 weeks |
@@ -56,7 +57,6 @@ No gate may be reported as passed until its row is **Met** in
 | OS-CAP-011 | Revocation is an in-memory set, not a signed, expiring record | Revocation distribution not designed | M | P3 |
 | OS-TRUST-006 | No signed revocation record with an expiry | Same design gap | M | P3 |
 | OS-TRUST-007 | No bit-for-bit rebuild proof | Reproducibility work; CI builds from tags today | M | ALP |
-| OS-TRUST-008 | No SBOM | CycloneDX generation planned | M | ALP |
 | OS-EXEC-002 | Isolation class is not shown in the app | It travels in the protocol, but no first-run screen | M | ALP |
 | OS-EXEC-003 | Untrusted code containment is policy, not enforcement | No WASM/container provider in-app yet | M | ALP |
 | OS-REL-002 | No measured device matrix | Device lab not established | S | ALP |

@@ -118,20 +118,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Cache verified QVAC runtime
-        uses: actions/cache@v4
+      - name: Set up Node for the universal layer
+        uses: actions/setup-node@v4
         with:
-          path: .qvac
-          key: qvac-${{ runner.os }}-${{ hashFiles('gradle.properties') }}
-
-      - name: Fetch and verify QVAC
-        shell: bash
-        run: |
-          set -euo pipefail
-          # The pinned artifact is never resolved from a mutable remote. The script checks
-          # its SHA-256 against gradle.properties before Gradle can see the repository.
-          python tools/fetch-qvac.py
-          test -d .qvac/qvac-maven-repository
+          node-version: "22"
 
       - name: Install asset tooling
         shell: bash
@@ -147,6 +137,15 @@ jobs:
       - name: Run unit tests
         shell: bash
         run: ./gradlew --no-daemon testDebugUnitTest
+
+      - name: Test the universal layer
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test cli/test/*.test.mjs hosts/hub/test/*.test.js
+          node tools/validate-contracts.mjs
+          node tools/check-companion.mjs
+          node tools/check-evidence.mjs
 
       - name: Require signing key
         shell: bash
@@ -230,6 +229,17 @@ jobs:
           printf '%s  %s\n' "${SHA256}" "$(basename "${ASSET}")" > "release/OriginStudio-${VERSION}.apk.sha256"
           cp signing-certificate.txt "release/signing-certificate.txt"
 
+          # The universal layer ships beside the app: a zero-build web app, a dependency-free
+          # CLI, and an SBOM. None of them needs a server or an account.
+          (cd companion && zip -q -r "../release/OriginCompanion-${VERSION}.zip" .)
+          npm pack --pack-destination release --silent > /dev/null
+          mv "release/originlabs-origin-${VERSION}.tgz" "release/origin-cli-${VERSION}.tgz"
+          node tools/make-sbom.mjs "release/OriginStudio-${VERSION}.sbom.cdx.json"
+
+          COMPANION_SHA256="$(sha256sum "release/OriginCompanion-${VERSION}.zip" | awk '{print $1}')"
+          CLI_SHA256="$(sha256sum "release/origin-cli-${VERSION}.tgz" | awk '{print $1}')"
+          SBOM_SHA256="$(sha256sum "release/OriginStudio-${VERSION}.sbom.cdx.json" | awk '{print $1}')"
+
           cat > release/release-manifest.json <<EOF
           {
             "product": "Origin Studio",
@@ -247,6 +257,16 @@ jobs:
             "targetSdk": 28,
             "compileSdk": 36,
             "supportedAbis": ["arm64-v8a", "x86_64"],
+            "universal": {
+              "companion": "OriginCompanion-${VERSION}.zip",
+              "companionSha256": "${COMPANION_SHA256}",
+              "cli": "origin-cli-${VERSION}.tgz",
+              "cliSha256": "${CLI_SHA256}",
+              "npm": "@originlabs/origin@${VERSION}",
+              "npx": "npx github:OriginLabs1/OriginStudio",
+              "sbom": "OriginStudio-${VERSION}.sbom.cdx.json",
+              "sbomSha256": "${SBOM_SHA256}"
+            },
             "distribution": {
               "canonical": "https://github.com/OriginLabs1/OriginStudio/releases",
               "obtainium": "https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/OriginLabs1/OriginStudio"
@@ -255,7 +275,7 @@ jobs:
           EOF
 
           # Keep the manifest and checksum consistent and easy to verify offline.
-          (cd release && sha256sum OriginStudio-* signing-certificate.txt release-manifest.json > SHA256SUMS)
+          (cd release && find . -maxdepth 1 -type f ! -name SHA256SUMS -printf '%f\n' | sort | xargs sha256sum > SHA256SUMS)
 
           echo "apk=${ASSET}" >> "${GITHUB_OUTPUT}"
           echo "sha256=${SHA256}" >> "${GITHUB_OUTPUT}"
@@ -282,6 +302,17 @@ jobs:
           2. Or add \`github.com/OriginLabs1/OriginStudio\` to [Obtainium](https://github.com/ImranR98/Obtainium) for automatic updates.
           3. Allow installs from your browser or file manager when Android asks.
 
+          ### Universal companion and CLI
+
+          The same workspace works without the app:
+
+          - **Companion:** unzip \`OriginCompanion-${VERSION}.zip\` anywhere static, or open it
+            from the host at its own address. No build step, no account.
+          - **CLI:** \`tar -xzf origin-cli-${VERSION}.tgz\` then \`node package/cli/origin.mjs doctor\`.
+            Or \`npx github:OriginLabs1/OriginStudio doctor\`.
+
+          See \`docs/universal.md\` for the full workflow.
+
           ### Verify
 
           SHA-256  ${SHA256}
@@ -293,8 +324,9 @@ jobs:
           \`\`\`
 
           Compare the checksum with \`OriginStudio-${VERSION}.apk.sha256\` and the certificate with
-          \`signing-certificate.txt\`. Every artifact is listed in \`SHA256SUMS\` and described in
-          \`release-manifest.json\`.
+          \`signing-certificate.txt\`. Every artifact is listed in \`SHA256SUMS\`, described in
+          \`release-manifest.json\`, and inventoried in
+          \`OriginStudio-${VERSION}.sbom.cdx.json\`.
 
           ### Requirements and known limitations
 
@@ -305,11 +337,9 @@ jobs:
           - PRoot, not a virtual machine: no systemd, no kernel modules, no raw sockets.
           - Bring your own account or API key for each external coding agent.
           - Not on Google Play. Distributed through GitHub Releases and Obtainium.
-          - The pinned QVAC local-AI runtime is included as the MLP foundation. The
-            Ask/Explain/Fix editor surface is not exposed yet; the core workspace remains fully
-            usable without it. The runtime requires arm64-v8a and Android 10 (API 29) or newer.
-          - QVAC cannot run on emulators. Functional inference is verified on a physical arm64
-            device before the MLP release, not by CI.
+          - The bundled local-AI runtime was removed in v0.0.9 to keep the APK lightweight.
+            Local AI returns when the Ask/Explain/Fix surface ships; the workspace and every
+            agent path work without it.
           EOF
 
           # Per-version notes live next to the source they describe, so the release record is

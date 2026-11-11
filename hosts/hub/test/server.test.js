@@ -243,3 +243,68 @@ test("a configured bearer token is required", async () => {
     await new Promise((resolve) => guarded.close(resolve));
   }
 });
+
+test("list_workspaces returns verified workspace summaries", async () => {
+  const { status, body } = await post(hello({ type: "list_workspaces", id: "list-1" }));
+  assert.equal(status, 200);
+  assert.equal(body.type, "stream_event");
+  assert.ok(Array.isArray(body.payload.workspaces));
+  const demo = body.payload.workspaces.find((item) => item.path === "demo");
+  assert.ok(demo, "demo workspace is listed");
+  assert.equal(demo.workspaceId, "ws_0123456789abcdef");
+  assert.equal(demo.name, "Test workspace");
+  assert.equal(demo.verified, true);
+  assert.equal(demo.eventCount, 1);
+  assert.equal(demo.checkpointCount, 0);
+  assert.match(demo.manifestHash, /^[0-9a-f]{64}$/);
+});
+
+test("list_events returns the verified history, bounded by limit", async () => {
+  const dir = join(root, "history");
+  await makeWorkspace(dir, "History workspace");
+  const { status, body } = await post(
+    hello({ type: "list_events", id: "events-1", payload: { path: "history", limit: 1 } }),
+  );
+  assert.equal(status, 200);
+  assert.equal(body.type, "stream_event");
+  assert.equal(body.payload.verified, true);
+  assert.equal(body.payload.events.length, 1);
+  assert.equal(body.payload.events[0].type, "workspace.created");
+});
+
+test("the universal companion is served from the host origin", async () => {
+  const response = await fetch(`${baseUrl}/`);
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type") || "", /text\/html/);
+  const html = await response.text();
+  assert.match(html, /Origin Companion/);
+  assert.match(html, /origin\.host\/v1/);
+
+  const asset = await fetch(`${baseUrl}/app.js`);
+  assert.equal(asset.status, 200);
+  assert.match(asset.headers.get("content-type") || "", /javascript/);
+
+  const manifest = await fetch(`${baseUrl}/manifest.webmanifest`);
+  assert.equal(manifest.status, 200);
+  assert.match(manifest.headers.get("content-type") || "", /manifest\+json/);
+});
+
+test("the host answers CORS preflight for the companion", async () => {
+  const response = await fetch(`${baseUrl}/origin/host/v1`, {
+    method: "OPTIONS",
+    headers: {
+      origin: "https://example.invalid",
+      "access-control-request-method": "POST",
+      "access-control-request-headers": "authorization, content-type",
+    },
+  });
+  assert.equal(response.status, 204);
+  assert.equal(response.headers.get("access-control-allow-origin"), "*");
+  assert.match(response.headers.get("access-control-allow-headers") || "", /authorization/);
+});
+
+test("health discloses whether a token is required", async () => {
+  const response = await fetch(`${baseUrl}/health`);
+  const body = await response.json();
+  assert.equal(body.authRequired, false);
+});

@@ -42,18 +42,19 @@ in-place update, because Android only accepts a new APK signed by the same key.
 A tag is immutable, so the source that carries it must already build. Locally:
 
 ```bash
-python3 tools/fetch-qvac.py     # hash-verified, git-ignored .qvac/ repository
+python3 tools/fetch-shell-runtime.py
+python3 tools/fetch-ca-bundle.py
 ./gradlew :core:test            # portable contract tests, no Android SDK needed
 node tools/validate-contracts.mjs
 node tools/check-evidence.mjs
-(cd hosts/hub && npm test)
+node tools/check-companion.mjs
+node --test cli/test/*.test.mjs hosts/hub/test/*.test.js
 ./gradlew :app:testDebugUnitTest
 ORIGIN_VERSION_NAME=<version> ORIGIN_VERSION_CODE=<code> ./gradlew :app:assembleRelease
 ```
 
-Check that the release APK keeps `minSdk 26` / `targetSdk 28`, contains
-`com.oneorigin.studio.ai` (R8 must not strip the local-AI foundation), and is signed by the
-certificate published with earlier releases:
+Check that the release APK keeps `minSdk 26` / `targetSdk 28`, carries no QVAC payload,
+and is signed by the certificate published with earlier releases:
 
 ```bash
 aapt2 dump badging app/build/outputs/apk/release/OriginStudio-release.apk | grep -i sdk
@@ -63,19 +64,19 @@ apksigner verify --print-certs app/build/outputs/apk/release/OriginStudio-releas
 ## Release a version
 
 ```bash
-git tag v0.0.3
-git push origin v0.0.3
+git tag v0.0.9
+git push origin v0.0.9
 ```
 
-Or run **Actions → Release → Run workflow** with a version such as `0.0.3`. The workflow:
+Or run **Actions → Release → Run workflow** with a version such as `0.0.9`. The workflow:
 
 1. derives `versionName` and `versionCode` from the tag (`major * 10000 + minor * 100 + patch`);
-2. fetches and hash-verifies the pinned QVAC Maven repository;
-3. stages the pinned Debian rootfs, PRoot binaries and CA bundle;
-4. runs the JVM unit tests and fails the release if any of them fail;
-5. decodes the release keystore from `ORIGIN_KEYSTORE_BASE64`;
-6. builds, shrinks and signs `OriginStudio-release.apk`;
-7. verifies the APK with `apksigner` and records the signing certificate;
+2. stages the pinned Debian rootfs, PRoot binaries and CA bundle;
+3. runs the JVM unit tests, the host/CLI tests and the companion/contract checks;
+4. decodes the release keystore from `ORIGIN_KEYSTORE_BASE64`;
+5. builds, shrinks and signs `OriginStudio-release.apk`;
+6. verifies the APK with `apksigner` and records the signing certificate;
+7. packages the companion zip, the CLI tarball and a CycloneDX SBOM;
 8. writes the SHA-256 checksums, `SHA256SUMS`, `signing-certificate.txt` and `release-manifest.json`;
 9. publishes all of it to GitHub Releases, which makes it available to Obtainium and the website.
 

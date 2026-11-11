@@ -23,13 +23,13 @@ not copied to a cloud backup by the OS.
 | --- | --- | --- | --- |
 | Update check | `api.github.com` | A plain GET for the latest public release; no identifier | At launch, throttled to once every few hours, and when you tap Check for updates |
 | APK download | GitHub Releases | Standard HTTP request | When you accept an update |
-| Model download | The source named in the model manifest | Standard HTTP request | When you start a download |
+| Companion (host) | The host you run | The protocol messages you send: workspace list, events, checkpoints | When you open the companion |
 | `apt`, `npm`, `pip`, agent installs | The registries you point them at | Whatever those tools send | When you run them |
 | Agents (Claude, Codex, etc.) | Their providers | Whatever the agent sends | When you use an agent that needs a provider |
-| Local AI | `:qvac_worker` on the same device | No network | Inference is local |
 
-Anything in the last three rows is software *you* chose to run, under its own
-terms. Origin Studio does not proxy, log or analyse it.
+Anything in the last two rows is software *you* chose to run, under its own
+terms. Origin Studio does not proxy, log or analyse it. The companion talks only
+to the host you name; it has no vendor endpoint and no telemetry.
 
 ## Permissions the app declares
 

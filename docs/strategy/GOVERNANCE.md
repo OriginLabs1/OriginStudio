@@ -144,6 +144,7 @@ A licence change is a constitutional amendment.
 | 2026-11-10 | P3 and P4 are not claimed before P1 and P2 are complete | One lovable journey, finished |
 | 2026-11-10 | `CONSTITUTION.md` v0.2.0 is supreme over the repository | ADR-0003; the existing project is subordinate and gaps are recorded |
 | 2026-11-10 | Local + remote is a constitutional obligation, tracked by gates D1–D5 | ADR-0003; the shift may not be deferred without an amendment |
+| 2026-11-11 | Remove the bundled QVAC runtime; ship the universal companion, CLI and SBOM | ADR-0010; weight without a surface, and a lighter universal release |
 | 2026-11-10 | One Host Protocol (`origin.host/v1`) spans every provider | ADR-0004; local and remote share one contract |
 | 2026-11-10 | Portable workspace manifest, hash-chained history and a single-writer lease | ADR-0005; makes ownership and integrity verifiable |
 | 2026-11-10 | Handoff first, conflict-explicit sync second, CRDT only later | ADR-0006; no silent merge |

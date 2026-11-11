@@ -1,10 +1,10 @@
 # ADR 0001: QVAC as the local-AI engine
 
-- **Status:** Accepted
+- **Status:** Superseded for shipping by [ADR-0010](0010-lightweight-universal.md) (v0.0.9)
 - **Date:** 2026-11-07
 - **Decision owner:** OneOrigin
 - **Supersedes:** none
-- **Release:** the QVAC foundation ships in `v0.0.2`
+- **Release:** the QVAC foundation shipped in `v0.0.2`; the runtime was removed in `v0.0.9`
 
 ## Context
 

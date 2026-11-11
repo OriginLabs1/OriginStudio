@@ -36,6 +36,3 @@ Thumbs.db
 
 # Tooling
 node_modules/
-
-# Vendored, hash-verified QVAC Maven repository (tools/fetch-qvac.py)
-.qvac/

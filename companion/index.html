@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Origin Companion</title>
+  <meta name="description" content="Open and check your Origin Studio workspaces from any screen. One portable workspace, one host you control.">
+  <meta name="theme-color" content="#05070e">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="top">
+    <a class="brand" href="./" aria-label="Origin Companion home">
+      <svg class="mark" viewBox="0 0 108 108" aria-hidden="true">
+        <path d="M87.6 60.6A39 39 0 1 1 78.3 31.7" fill="none" stroke="currentColor" stroke-width="10.5" stroke-linecap="round"/>
+        <circle cx="54" cy="54" r="8.5" fill="currentColor"/>
+      </svg>
+      <span>Origin <b>Companion</b></span>
+    </a>
+    <div class="connection" id="connection" data-state="offline">
+      <span class="dot" aria-hidden="true"></span>
+      <span id="connection-label">Not connected</span>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="welcome" id="connect-view">
+      <p class="eyebrow">Universal companion</p>
+      <h1>Your studio,<br><em>from any screen.</em></h1>
+      <p class="lede">Connect to an Origin host you control. See every workspace, verify its history, make a checkpoint, and hand work to an agent — from a phone, a tablet, or a browser on the machine itself.</p>
+
+      <form id="connect-form" class="connect" autocomplete="off">
+        <label for="host">Host URL</label>
+        <input id="host" name="host" type="url" inputmode="url" placeholder="http://127.0.0.1:8787" spellcheck="false" required>
+        <label for="token">Access token <span class="optional">optional</span></label>
+        <input id="token" name="token" type="password" placeholder="The token printed by origin serve" spellcheck="false">
+        <button class="primary" type="submit">Connect</button>
+        <p class="error" id="connect-error" role="alert" hidden></p>
+      </form>
+
+      <details class="help">
+        <summary>How do I start a host?</summary>
+        <p>On any machine with Node 20 or newer:</p>
+        <pre><code>npx github:OriginLabs1/OriginStudio serve --root ~/origin</code></pre>
+        <p>Or from a checkout of the repository:</p>
+        <pre><code>node cli/origin.mjs serve --root ~/origin</code></pre>
+        <p class="fine">The host binds to <code>127.0.0.1</code> by default. Put it behind your own TLS terminator before exposing it to a network. The token stays in this browser.</p>
+      </details>
+
+      <p class="fine no-account">No account. No telemetry. Apache-2.0.</p>
+    </section>
+
+    <section id="app-view" hidden>
+      <div class="hero">
+        <div>
+          <p class="eyebrow">Connected host</p>
+          <h1 id="host-title">Origin host</h1>
+          <p class="lede compact" id="host-subtitle"></p>
+        </div>
+        <div class="hero-actions">
+          <button class="ghost" id="refresh" type="button">Refresh</button>
+          <button class="ghost" id="disconnect" type="button">Disconnect</button>
+        </div>
+      </div>
+
+      <div class="disclosure" id="disclosure" aria-label="Host disclosure"></div>
+
+      <div class="stats" id="stats" aria-label="Workspace totals"></div>
+
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Fleet</p>
+          <h2>Workspaces</h2>
+        </div>
+        <span class="count" id="workspace-count"></span>
+      </div>
+
+      <div class="grid" id="workspaces"></div>
+      <p class="empty" id="workspace-empty" hidden>No workspaces under this host yet. Create one with <code>origin init</code> or open a project in Origin Studio.</p>
+
+      <section class="detail" id="detail" hidden aria-live="polite"></section>
+
+      <footer class="foot">
+        <p>One workspace. One host. Your rules.</p>
+        <p class="fine">Origin Companion speaks <code>origin.host/v1</code>. It never writes files directly; every action is a request the host verifies and records.</p>
+      </footer>
+    </section>
+  </main>
+
+  <dialog id="confirm-dialog">
+    <form method="dialog">
+      <h2 id="confirm-title">Are you sure?</h2>
+      <p id="confirm-body"></p>
+      <div class="dialog-actions">
+        <button class="ghost" value="cancel">Cancel</button>
+        <button class="danger" value="confirm">Continue</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js" type="module"></script>
+</body>
+</html>
