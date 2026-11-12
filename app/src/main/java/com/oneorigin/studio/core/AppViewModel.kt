@@ -337,14 +337,21 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun addSession(folderId: String, name: String, command: String, acpAgentId: String = "") {
+    fun addSession(
+        folderId: String,
+        name: String,
+        command: String,
+        acpAgentId: String = "",
+        onCreated: (String) -> Unit = {},
+    ) {
         viewModelScope.launch {
+            val id = Ids.new()
             store.update { data ->
                 data.copy(
                     folders = data.folders.map { folder ->
                         if (folder.id != folderId) return@map folder
                         val session = Session(
-                            id = Ids.new(),
+                            id = id,
                             name = name,
                             command = command,
                             tint = folder.sessions.size % 6,
@@ -354,6 +361,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 )
             }
+            onCreated(id)
         }
     }
 

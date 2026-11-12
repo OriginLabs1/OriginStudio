@@ -1,7 +1,12 @@
 package com.oneorigin.studio.ui.screens
 
 import android.content.ClipData
+import android.content.Intent
+import android.net.Uri
+import android.provider.OpenableColumns
+import android.speech.RecognizerIntent
 import android.util.Base64
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,6 +26,7 @@ import androidx.compose.foundation.content.MediaType
 import androidx.compose.foundation.content.consume
 import androidx.compose.foundation.content.contentReceiver
 import androidx.compose.foundation.content.hasMediaType
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -72,6 +78,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draganddrop.DragAndDropEvent
+import androidx.compose.ui.draganddrop.DragAndDropTarget
+import androidx.compose.ui.draganddrop.mimeTypes
+import androidx.compose.ui.draganddrop.toAndroidDragEvent
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -104,6 +114,7 @@ import com.oneorigin.studio.acp.AcpRegistry
 import com.oneorigin.studio.acp.AcpSessions
 import com.oneorigin.studio.acp.AcpUiState
 import com.oneorigin.studio.acp.PastedImages
+import com.oneorigin.studio.studio.StudioStore
 import com.oneorigin.studio.core.Folder
 import com.oneorigin.studio.shell.ShellConfig
 import com.oneorigin.studio.shell.TerminalHost
@@ -1213,8 +1224,124 @@ private fun Composer(
         files.add(AcpBlock.TextFile("pasted-$pasteCounter.txt", text))
     }
 
+    fun toast(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
+    fun displayName(uri: Uri): String {
+        if (uri.scheme == "file") return uri.lastPathSegment?.substringAfterLast('/') ?: "file"
+        return runCatching {
+            context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
+                ?.use { cursor ->
+                    if (cursor.moveToFirst()) cursor.getString(0) else null
+                }
+        }.getOrNull() ?: uri.lastPathSegment?.substringAfterLast('/') ?: "file"
+    }
+
+    /**
+     * Attach anything the system picker offers. Images become image blocks; text is read as
+     * a file block up to a sane size. A binary cannot be sent as text, so the app says so
+     * instead of sending bytes that would arrive as mojibake.
+     */
+    fun addUri(uri: Uri) {
+        if (PastedImages.isImage(context, uri)) {
+            addImage(uri)
+            return
+        }
+        scope.launch {
+            val name = displayName(uri)
+            val attached = withContext(Dispatchers.IO) {
+                runCatching {
+                    val resolver = context.contentResolver
+                    val size = resolver.openAssetFileDescriptor(uri, "r")?.use { it.length } ?: -1L
+                    if (size > 2L * 1024 * 1024) return@runCatching null
+                    val bytes = resolver.openInputStream(uri)?.use { input ->
+                        // One byte over the limit is enough to know it is too large.
+                        val buffer = java.io.ByteArrayOutputStream()
+                        val chunk = ByteArray(16 * 1024)
+                        while (true) {
+                            val read = input.read(chunk)
+                            if (read <= 0) break
+                            buffer.write(chunk, 0, read)
+                            if (buffer.size() > 2 * 1024 * 1024) return@runCatching null
+                        }
+                        buffer.toByteArray()
+                    } ?: return@runCatching null
+                    // Reject binaries honestly: bytes must be valid UTF-8 text, not a file
+                    // that merely happens to contain a NUL byte or decodes to mojibake.
+                    val decoded = Charsets.UTF_8.newDecoder()
+                        .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+                        .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
+                        .decode(java.nio.ByteBuffer.wrap(bytes))
+                        .toString()
+                    if ('\u0000' in decoded) return@runCatching null
+                    decoded
+                }.getOrNull()
+            }
+            if (attached == null) {
+                toast(context.getString(R.string.acp_attach_too_large, name))
+            } else {
+                files.add(AcpBlock.TextFile(name, attached))
+            }
+        }
+    }
+
     val pickImage = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) addImage(uri)
+    }
+
+    val pickFile = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        uris.forEach { addUri(it) }
+    }
+
+    // Dictation uses the system recogniser already on the phone; the words are appended to
+    // whatever was typed, so speaking and typing mix naturally.
+    val dictate = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            val spoken = result.data
+                ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                ?.firstOrNull()
+                ?.trim()
+            if (!spoken.isNullOrBlank()) {
+                val current = input.text.toString()
+                input.setTextAndPlaceCursorAtEnd(if (current.isBlank()) spoken else "$current $spoken")
+            }
+        }
+    }
+
+    fun startDictation() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_PROMPT, context.getString(R.string.acp_dictate))
+        }
+        val available = intent.resolveActivity(context.packageManager) != null
+        if (!available) {
+            toast(context.getString(R.string.acp_dictation_unavailable))
+            return
+        }
+        runCatching { dictate.launch(intent) }.onFailure {
+            toast(context.getString(R.string.acp_dictation_unavailable))
+        }
+    }
+
+    var dragging by remember { mutableStateOf(false) }
+    val dropTarget = remember {
+        object : DragAndDropTarget {
+            override fun onDrop(event: DragAndDropEvent): Boolean {
+                dragging = false
+                val clip = event.toAndroidDragEvent().clipData ?: return false
+                var took = false
+                for (index in 0 until clip.itemCount) {
+                    val item = clip.getItemAt(index)
+                    item.uri?.let { addUri(it); took = true }
+                }
+                return took
+            }
+
+            override fun onEntered(event: DragAndDropEvent) { dragging = true }
+            override fun onExited(event: DragAndDropEvent) { dragging = false }
+            override fun onEnded(event: DragAndDropEvent) { dragging = false }
+        }
     }
 
     val canSend = input.text.isNotBlank() || images.isNotEmpty() || files.isNotEmpty()
@@ -1253,6 +1380,7 @@ private fun Composer(
         if (!canSend) return
         val text = input.text.toString().trim()
         if (agentBusy || queued.isNotEmpty()) onQueue(text, images.toList(), files.toList()) else onSend(text, images.toList(), files.toList())
+        StudioStore.recordPrompt(agentId)
         input.clearText()
         images.clear()
         files.clear()
@@ -1261,9 +1389,30 @@ private fun Composer(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 10.dp),
+            .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 10.dp)
+            .dragAndDropTarget(
+                shouldStartDragAndDrop = { event ->
+                    event.mimeTypes().any {
+                        it.startsWith("image/") || it == "text/uri-list" || it == "text/plain"
+                    }
+                },
+                target = dropTarget,
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        if (dragging) {
+            Text(
+                text = stringResource(R.string.acp_drop_hint),
+                style = MaterialTheme.typography.labelLarge,
+                color = Palette.Accent,
+                modifier = Modifier
+                    .padding(bottom = 6.dp)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(Palette.AccentSoft)
+                    .border(1.dp, Palette.Accent.copy(alpha = 0.5f), RoundedCornerShape(999.dp))
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+            )
+        }
         Column(
             modifier = Modifier
                 .widthIn(max = ContentMaxWidth)
@@ -1383,6 +1532,20 @@ private fun Composer(
                     onClick = {
                         pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     },
+                    tint = Palette.TextDim,
+                    size = 38,
+                )
+                BareIconButton(
+                    icon = OriginStudioIcons.FilePlus,
+                    contentDescription = stringResource(R.string.acp_attach_file),
+                    onClick = { pickFile.launch(arrayOf("*/*")) },
+                    tint = Palette.TextDim,
+                    size = 38,
+                )
+                BareIconButton(
+                    icon = OriginStudioIcons.Mic,
+                    contentDescription = stringResource(R.string.acp_dictate),
+                    onClick = { startDictation() },
                     tint = Palette.TextDim,
                     size = 38,
                 )

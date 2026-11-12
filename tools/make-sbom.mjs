@@ -30,7 +30,7 @@ const components = [];
 // Android app and its JVM core are one product but two build units.
 components.push({
   type: "application",
-  "bom-ref": "pkg:generic/origin-studio@0.0.9",
+  "bom-ref": `pkg:generic/origin-studio@${pkg.version}`,
   name: "Origin Studio",
   version: pkg.version,
   description: "Android workspace with a bundled Debian userland, terminals and agent sessions.",
@@ -43,16 +43,31 @@ components.push({
 
 components.push({
   type: "library",
-  "bom-ref": "pkg:generic/origin-core@0.0.9",
+  "bom-ref": `pkg:generic/origin-core@${pkg.version}`,
   name: "Origin core",
   version: pkg.version,
   description: "Portable JVM trust core: workspaces, identity, egress, capabilities and the host protocol.",
   licenses: [{ license: { id: "Apache-2.0" } }],
 });
 
+// The Rust core is the same contract in a second language: platform-free, auditable and
+// tested on its own. It ships as a standalone Linux binary beside the universal layer.
+components.push({
+  type: "library",
+  "bom-ref": `pkg:cargo/origin-core@${pkg.version}`,
+  name: "origin-core",
+  version: pkg.version,
+  description: "Rust core and CLI: environments, agents, jump index, previews, usage and automations.",
+  licenses: [{ license: { id: "Apache-2.0" } }],
+  properties: [
+    { name: "origin:language", value: "rust" },
+    { name: "origin:runtimeDependencies", value: "serde, serde_json" },
+  ],
+});
+
 components.push({
   type: "application",
-  "bom-ref": "pkg:npm/%40originlabs/origin@0.0.9",
+  "bom-ref": `pkg:npm/%40originlabs/origin@${pkg.version}`,
   name: pkg.name,
   version: pkg.version,
   description: "Dependency-free CLI and reference host for portable Origin workspaces.",
@@ -62,7 +77,7 @@ components.push({
 
 components.push({
   type: "application",
-  "bom-ref": "pkg:generic/origin-companion@0.0.9",
+  "bom-ref": `pkg:generic/origin-companion@${pkg.version}`,
   name: "Origin Companion",
   version: pkg.version,
   description: "Zero-build installable web app served by the host.",

@@ -28,7 +28,7 @@
   "applicationCategory": "DeveloperApplication",
   "operatingSystem": "Android 8.0+",
   "description": "A full Debian Linux environment inside an Android app, with AI coding agents such as Claude Code, Codex, Gemini CLI, OpenCode and Pi. No root required. The same workspace opens in a zero-build companion and a dependency-free CLI.",
-  "softwareVersion": "0.0.9",
+  "softwareVersion": "0.0.10",
   "url": "https://originlabs1.github.io/OriginStudio/",
   "downloadUrl": "https://github.com/OriginLabs1/OriginStudio/releases/latest",
   "license": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -68,7 +68,7 @@
 
     <figure class="hero-shot">
       <img src="screenshots/chat.png" alt="Origin Studio on a tablet showing Codex answering in the chat view" width="2944" height="1744" fetchpriority="high">
-      <figcaption>Codex answering in the chat view. The same screen works with Claude, OpenCode, Cursor and Pi. <span class="small">(Captured on v0.0.2; v0.0.9 uses the steel palette and adds Fleet.)</span></figcaption>
+      <figcaption>Codex answering in the chat view. The same screen works with Claude, OpenCode, Cursor and Pi. <span class="small">(Captured on v0.0.2; v0.0.10 uses the steel palette and adds Studio and Fleet.)</span></figcaption>
     </figure>
 
     <section class="row" id="what">
@@ -91,7 +91,8 @@
     <section class="row" id="anywhere">
       <h2>anywhere</h2>
       <div class="body">
-        <p>v0.0.9 makes the workspace reach past the tablet. A <strong>zero-build companion</strong> is plain HTML, CSS and JavaScript: the host serves it, or you unzip it on any static server and install it to a home screen. It lists workspaces, verifies the hash-chained history, creates checkpoints and runs health checks. It has no framework, no account and no telemetry.</p>
+        <p>v0.0.10 adds a <strong>Studio</strong> tab: choose Debian on the phone or Dakota OS on a paired host, pick the agent new sessions start with, watch a device-local prompt budget, schedule commands as real shell sessions, and switch between five premium finishes. Press <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>K</kbd> to jump to any workspace, session, environment, agent or action.</p>
+        <p>The workspace also reaches past the tablet. A <strong>zero-build companion</strong> is plain HTML, CSS and JavaScript: the host serves it, or you unzip it on any static server and install it to a home screen. It lists workspaces, verifies the hash-chained history, creates checkpoints and runs health checks. It has no framework, no account and no telemetry.</p>
         <p>The <strong>origin CLI</strong> is one dependency-free Node file. It creates, verifies, lists, checkpoints and serves workspaces on a laptop, a home server or a small VPS, and it imports the reference host's own verification code, so a workspace made there opens unchanged in the app.</p>
         <p><code>npx github:OriginLabs1/OriginStudio serve --root ~/origin</code></p>
         <p>Inside the app, a new <strong>Fleet</strong> tab shows every session on the device, grouped by project, with honest live state and one tap to open. The release also ships a CycloneDX SBOM beside the signed APK, the companion zip and the CLI tarball. The full workflow is in <a href="https://github.com/OriginLabs1/OriginStudio/blob/main/docs/universal.md">the universal notes</a>.</p>
@@ -103,6 +104,7 @@
       <div class="body">
         <ul>
           <li>A file manager and a code editor. You can send files into a project from any app, and export them out again.</li>
+          <li>PDF previews with page navigation and Markdown previews with an outline. Drag files or images onto the chat, attach any text file, or dictate a prompt.</li>
           <li>A browser next to the chat. Agents can open a page, click, fill in forms and take screenshots to check their own work. The snapshots they get are kept short on purpose, so they do not burn tokens.</li>
           <li>A key row for Ctrl, Esc and the arrows, and a floating bubble that keeps your session one tap away while you are in another app.</li>
           <li>Updates from Settings: it checks GitHub, verifies the checksum and signature, then hands the APK to Android's installer.</li>

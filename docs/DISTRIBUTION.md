@@ -60,6 +60,8 @@ manifest, the signing certificate, a description and a licence. Do it after
 | `OriginStudio-<version>.apk.sha256` | Per-file checksum |
 | `OriginCompanion-<version>.zip` | Zero-build web app; unzip anywhere static |
 | `origin-cli-<version>.tgz` | Dependency-free CLI and reference host |
+| `origin-core-<version>-x86_64-unknown-linux-gnu.tar.gz` | Rust core CLI, x86_64 Linux |
+| `origin-core-<version>-aarch64-unknown-linux-gnu.tar.gz` | Rust core CLI, ARM64 Linux |
 | `OriginStudio-<version>.sbom.cdx.json` | CycloneDX SBOM for the release |
 | `SHA256SUMS` | All artifacts in one file |
 | `signing-certificate.txt` | `apksigner` output, full certificate |
@@ -78,6 +80,7 @@ The dual-mode shift is distributed as source, deliberately:
 | Component | Where | How it is consumed |
 | --- | --- | --- |
 | `:core` | `core/` in the tagged tree | Built by Gradle; plain JVM, no Android imports |
+| Rust core | `rust/origin-core/` in the tagged tree | `cargo build --release`; also shipped as x86_64 and aarch64 Linux archives |
 | Contracts | `contracts/` | JSON Schema 2020-12 plus cross-language fixtures |
 | Reference host | `hosts/hub/` | `node hosts/hub/server.js`; no dependencies |
 | Companion | `companion/` | Served by the host, or unzipped on any static server; no build step |

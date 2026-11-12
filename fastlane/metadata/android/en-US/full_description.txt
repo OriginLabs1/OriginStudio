@@ -3,4 +3,6 @@ Origin Studio puts a full Debian 13 Linux environment inside an Android app, wit
 - A full Debian environment: apt install anything. Python, Node 22, git, build tools and SSH work out of the box after a one-time setup.
 - Real Linux projects that live in Debian's own storage, so symlinks, permissions, git, npm and virtualenvs behave as on a PC.
 - Native chat view for agents, a built-in preview browser agents can drive, a file manager and a tablet-friendly terminal with a key row.
+- A Studio tab for choosing Debian on the phone or Dakota OS on a paired host, switching agents without signing out, watching a device-local prompt budget, scheduling commands and picking a premium finish.
+- Jump Anywhere with Ctrl/Cmd+K, PDF and Markdown previews, drag-and-drop files, attachments and dictation.
 - Coming from an earlier version that used Ubuntu? Origin Studio offers to switch to Debian and keeps your projects, files, agent sign-ins and Node.js.

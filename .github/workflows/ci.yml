@@ -39,6 +39,27 @@ jobs:
           path: core/build/reports/tests/test
           if-no-files-found: ignore
 
+  rust:
+    name: Rust core tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust/origin-core
+      - name: Test the Rust core
+        run: cargo test --locked --manifest-path rust/origin-core/Cargo.toml
+      - name: Check the CLI answers without a network or an account
+        run: |
+          set -euo pipefail
+          cargo build --locked --release --manifest-path rust/origin-core/Cargo.toml
+          BIN=rust/origin-core/target/release/origin-core
+          "${BIN}" fingerprint
+          "${BIN}" environments
+          "${BIN}" why
+
   host:
     name: Reference host contract tests
     runs-on: ubuntu-latest

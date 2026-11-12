@@ -89,6 +89,12 @@ import com.oneorigin.studio.ui.screens.AgentSessionScreen
 import com.oneorigin.studio.ui.screens.ConfirmDialog
 import com.oneorigin.studio.ui.screens.FileManagerScreen
 import com.oneorigin.studio.ui.screens.FilesWorkspace
+import com.oneorigin.studio.ui.screens.JumpEntry
+import com.oneorigin.studio.ui.screens.JumpPalette
+import com.oneorigin.studio.ui.screens.JumpShortcut
+import com.oneorigin.studio.ui.screens.StudioScreen
+import com.oneorigin.studio.studio.StudioAutomation
+import com.oneorigin.studio.studio.StudioStore
 import com.oneorigin.studio.ui.screens.FleetScreen
 import com.oneorigin.studio.ui.screens.FolderDetailScreen
 import com.oneorigin.studio.ui.screens.FoldersScreen
@@ -103,6 +109,7 @@ import com.oneorigin.studio.ui.screens.WelcomeScreen
 import com.oneorigin.studio.ui.theme.Palette
 import com.oneorigin.studio.ui.theme.OriginStudioTheme
 import com.oneorigin.studio.ui.theme.Motion
+import kotlinx.coroutines.delay
 
 class MainActivity : OriginStudioActivity() {
 
@@ -158,6 +165,14 @@ open class OriginStudioActivity : ComponentActivity() {
      * terminal, which is them choosing touch again (see [PhysicalKeyboard]).
      */
     override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        // Ctrl/Cmd+K opens Jump Anywhere from anywhere, including a terminal.
+        if (event.action == android.view.KeyEvent.ACTION_DOWN &&
+            event.keyCode == android.view.KeyEvent.KEYCODE_K &&
+            (event.isCtrlPressed || event.isMetaPressed)
+        ) {
+            JumpShortcut.request()
+            return true
+        }
         val wasInUse = com.oneorigin.studio.ui.components.PhysicalKeyboard.inUse
         if (event.action == android.view.KeyEvent.ACTION_DOWN &&
             com.oneorigin.studio.ui.components.PhysicalKeyboard.onKeyEvent(event) && !wasInUse
@@ -265,6 +280,102 @@ internal fun OriginStudioRoot(viewModel: AppViewModel, showWelcome: Boolean = fa
     val job by viewModel.job.collectAsStateWithLifecycle()
     var searchOpen by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
+    var jumpOpen by remember { mutableStateOf(false) }
+
+    // The Studio's state is local and inspectable; initialise it before any tab reads it.
+    LaunchedEffect(Unit) { StudioStore.init(context) }
+
+    // Scheduled commands run only while Origin Studio is open. A run becomes a real shell
+    // session in the first project, visible afterwards in Fleet; it never steals the screen.
+    LaunchedEffect(data.folders.map { it.id }) {
+        while (true) {
+            val folder = data.folders.firstOrNull()
+            if (folder != null) {
+                StudioStore.due().forEach { automation ->
+                    viewModel.addSession(
+                        folderId = folder.id,
+                        name = automation.name,
+                        command = automation.command,
+                    )
+                    StudioStore.markRun(automation.id)
+                }
+            }
+            delay(30_000)
+        }
+    }
+
+    LaunchedEffect(JumpShortcut.requested) {
+        if (JumpShortcut.requested) {
+            jumpOpen = true
+            JumpShortcut.consume()
+        }
+    }
+
+    // Everything Jump Anywhere can reach. Built from the live workspace, so a new project
+    // or a closed session is searchable immediately.
+    val jumpEntries = remember(data, tab) {
+        buildList {
+            add(JumpEntry("Studio", "Environments, agents, usage and scheduled commands", "action", "tab:STUDIO", "home dashboard"))
+            add(JumpEntry("Projects", "Every workspace on this device", "action", "tab:FOLDERS", "folders home"))
+            add(JumpEntry("Fleet", "Every running session in one place", "action", "tab:FLEET", "sessions chats shells"))
+            add(JumpEntry("Files", "Browse the Debian environment", "action", "tab:FILES", "file manager editor"))
+            add(JumpEntry("Settings", "Environment, updates and appearance", "action", "tab:SETTINGS", "preferences"))
+            add(JumpEntry("New project", "Empty, clone or import", "action", "action:new", "create clone"))
+            data.folders.forEach { folder ->
+                add(JumpEntry(folder.name, folder.path.ifBlank { "workspace" }, "workspace", "folder:${folder.id}", "project repo"))
+                folder.sessions.forEach { session ->
+                    val kind = if (session.acpAgentId.isNotBlank()) "agent" else "shell"
+                    add(JumpEntry(session.name, "${folder.name} · $kind", "session", "session:${folder.id}/${session.id}", kind))
+                }
+            }
+            add(JumpEntry("Debian 13", "Local, offline, inside the app", "environment", "env:debian", "linux proot trixie"))
+            add(JumpEntry("Dakota OS", "Bluefin atomic host, paired", "environment", "env:dakota", "linux bluefin laptop host"))
+            add(JumpEntry("Origin Agent", "Built-in profile for your workspace", "agent", "agent:origin", "built in"))
+            listOf(
+                "claude-acp" to "Claude Code",
+                "codex-acp" to "Codex",
+                "opencode" to "OpenCode",
+                "cursor" to "Cursor",
+                "gemini" to "Gemini CLI",
+                "devin" to "Devin",
+                "pi-acp" to "Pi",
+                "omp" to "omp",
+            ).forEach { (id, name) ->
+                add(JumpEntry(name, "Agent", "agent", "agent:$id", "acp agent"))
+            }
+        }
+    }
+
+    fun openJump(entry: JumpEntry) {
+        jumpOpen = false
+        val target = entry.target
+        when {
+            target.startsWith("tab:") -> {
+                tab = runCatching { NavTab.valueOf(target.removePrefix("tab:")) }.getOrDefault(NavTab.FOLDERS)
+                searchOpen = false
+                destination = Destination.Tabs
+            }
+            target.startsWith("folder:") -> destination = Destination.Folder(target.removePrefix("folder:"))
+            target.startsWith("session:") -> {
+                val (folderId, sessionId) = target.removePrefix("session:").split('/', limit = 2)
+                    .let { it.getOrNull(0).orEmpty() to it.getOrNull(1).orEmpty() }
+                if (folderId.isNotBlank() && sessionId.isNotBlank()) {
+                    destination = Destination.Terminal(folderId, sessionId)
+                }
+            }
+            target.startsWith("env:") -> {
+                StudioStore.selectEnvironment(target.removePrefix("env:"))
+                tab = NavTab.STUDIO
+                destination = Destination.Tabs
+            }
+            target.startsWith("agent:") -> {
+                StudioStore.selectAgent(target.removePrefix("agent:"))
+                tab = NavTab.STUDIO
+                destination = Destination.Tabs
+            }
+            target == "action:new" -> newProject = true
+        }
+    }
 
     var optionsFor by remember { mutableStateOf<OptionsTarget?>(null) }
     var renameFolderId by remember { mutableStateOf<String?>(null) }
@@ -446,6 +557,23 @@ internal fun OriginStudioRoot(viewModel: AppViewModel, showWelcome: Boolean = fa
                                 label = "tab",
                             ) { currentTab ->
                             when (currentTab) {
+                                NavTab.STUDIO -> StudioScreen(
+                                    onJump = { jumpOpen = true },
+                                    onRunAutomation = { automation ->
+                                        val folder = data.folders.firstOrNull()
+                                        if (folder != null) {
+                                            viewModel.addSession(
+                                                folderId = folder.id,
+                                                name = automation.name,
+                                                command = automation.command,
+                                            ) { id ->
+                                                destination = Destination.Terminal(folder.id, id)
+                                            }
+                                        }
+                                    },
+                                    wide = windowWidth.isWide,
+                                )
+
                                 NavTab.FOLDERS -> FoldersScreen(
                                     folders = data.folders,
                                     query = query,
@@ -683,6 +811,14 @@ internal fun OriginStudioRoot(viewModel: AppViewModel, showWelcome: Boolean = fa
     }
     }
 
+    if (jumpOpen) {
+        JumpPalette(
+            entries = jumpEntries,
+            onPick = { openJump(it) },
+            onDismiss = { jumpOpen = false },
+        )
+    }
+
     if (newProject) {
         com.oneorigin.studio.ui.screens.NewProjectDialog(
             onCreateEmpty = { name ->
@@ -836,6 +972,17 @@ private fun NewSessionDialog(
             loadingAgents = true
             agents = com.oneorigin.studio.acp.AcpRegistry.agents(context)
             loadingAgents = false
+        }
+    }
+
+    // The Studio's chosen agent becomes the first choice here. "origin" is the built-in
+    // profile, which does not force a particular ACP agent; the user still picks one.
+    LaunchedEffect(agents, selected) {
+        if (selected == acpIndex && selectedAgent == null) {
+            val preferred = com.oneorigin.studio.studio.StudioStore.current.activeAgentId
+            if (preferred.isNotBlank() && preferred != "origin") {
+                selectedAgent = agents.firstOrNull { it.id == preferred }
+            }
         }
     }
 

@@ -1088,11 +1088,20 @@ internal fun CodeEditor(
     modifier: Modifier = Modifier,
     readOnly: Boolean = false,
 ) {
-    if (FileActions.isImage(file)) {
-        LaunchedEffect(file) { onDirtyChange(false) }
-        ImageViewer(file = file, onClose = onClose, modifier = modifier, readOnly = readOnly)
-    } else {
-        TextEditor(file, root, onDirtyChange, onClose, modifier, readOnly)
+    when {
+        FileActions.isImage(file) -> {
+            LaunchedEffect(file) { onDirtyChange(false) }
+            ImageViewer(file = file, onClose = onClose, modifier = modifier, readOnly = readOnly)
+        }
+        file.extension.equals("pdf", ignoreCase = true) -> {
+            LaunchedEffect(file) { onDirtyChange(false) }
+            PdfViewer(file = file, onClose = onClose, modifier = modifier)
+        }
+        file.extension.equals("md", ignoreCase = true) || file.extension.equals("markdown", ignoreCase = true) -> {
+            LaunchedEffect(file) { onDirtyChange(false) }
+            MarkdownViewer(file = file, onClose = onClose, modifier = modifier)
+        }
+        else -> TextEditor(file, root, onDirtyChange, onClose, modifier, readOnly)
     }
 }
 

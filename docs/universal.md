@@ -7,18 +7,20 @@ home server, a tablet browser or a phone that is not the one holding the app.
 Everything here is dependency-free and runs from the tagged source tree. Nothing needs an
 account, a build service or a vendor.
 
-## What ships in v0.0.9
+## What ships in v0.0.10
 
 | Artifact | Size | What it is |
 | --- | --- | --- |
 | `OriginCompanion-<version>.zip` | a few KB | Zero-build installable web app |
 | `origin-cli-<version>.tgz` | a few KB | The `origin` CLI and reference host |
+| `origin-core-<version>-x86_64-unknown-linux-gnu.tar.gz` | ~1 MB | Rust core CLI for x86_64 Linux |
+| `origin-core-<version>-aarch64-unknown-linux-gnu.tar.gz` | ~1 MB | Rust core CLI for ARM64 Linux |
 | `OriginStudio-<version>.sbom.cdx.json` | a few KB | CycloneDX SBOM for the release |
 | `OriginStudio-<version>.apk` | ~62 MB | The Android app |
 
-The APK is smaller than earlier lines because the bundled QVAC local-AI runtime was
-removed (ADR-0010). The universal layer replaces that weight with things that run
-everywhere.
+The APK stays small because the bundled QVAC local-AI runtime was removed (ADR-0010). The
+universal layer keeps adding reach without weight: the companion and Node CLI are source
+small enough to read, and the Rust core is a single static binary per architecture.
 
 ## The companion
 
@@ -44,7 +46,7 @@ code, so a workspace created by the CLI opens unchanged in the app and vice vers
 
 ```sh
 # from the release tarball (unpacks into package/)
-tar -xzf origin-cli-0.0.9.tgz
+tar -xzf origin-cli-0.0.10.tgz
 node package/cli/origin.mjs doctor
 
 # or straight from GitHub
@@ -68,10 +70,33 @@ origin doctor                             # Node version, files, ports, contract
 `origin serve` binds to loopback by default. Put it behind your own TLS terminator before
 exposing it, and set `ORIGIN_HOST_TOKEN` (or `--token`) when it is not loopback-only.
 
+## The Rust core
+
+`origin-core` answers the workspace's own questions from a terminal: which environments
+exist, which agents and themes are catalogued, how Jump ranks a query, whether a file can be
+previewed, how a schedule resolves, and why the product is different. It is a single static
+binary, dependency-light (serde only), offline and stateless.
+
+```sh
+tar -xzf origin-core-0.0.10-x86_64-unknown-linux-gnu.tar.gz   # or aarch64
+./origin-core fingerprint
+./origin-core environments
+./origin-core recommend --host
+./origin-core why --json
+```
+
+It is the same contract the app mirrors in Kotlin, so a host, a script or a support session
+can check an answer without a device. Building it needs only Cargo:
+
+```sh
+cargo test --manifest-path rust/origin-core/Cargo.toml
+cargo build --release --manifest-path rust/origin-core/Cargo.toml
+```
+
 ## The host
 
 The reference host is the same one documented in
-[`strategy/DUAL-MODE.md`](strategy/DUAL-MODE.md) and ADR-0009. v0.0.9 adds two messages
+[`strategy/DUAL-MODE.md`](strategy/DUAL-MODE.md) and ADR-0009. v0.0.9 added two messages
 that the companion needs and the app can use:
 
 - `list_workspaces` — verified summaries of every workspace under the root.
@@ -91,11 +116,13 @@ prove the history without trusting the app.
 ## Verification
 
 ```sh
+cargo test --manifest-path rust/origin-core/Cargo.toml
 node --test cli/test/*.test.mjs hosts/hub/test/*.test.js
 node tools/validate-contracts.mjs
 node tools/check-companion.mjs
 node tools/check-evidence.mjs
 ```
 
-The release workflow runs all four, then packages the companion, CLI and SBOM beside the
-signed APK and lists every artifact in `SHA256SUMS`.
+The release workflow runs all of them, cross-builds the Rust core for x86_64 and aarch64,
+then packages the companion, CLI, core archives and SBOM beside the signed APK and lists
+every artifact in `SHA256SUMS`.

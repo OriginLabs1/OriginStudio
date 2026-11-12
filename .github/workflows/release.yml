@@ -123,6 +123,18 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Set up Rust for the core CLI
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-gnu
+
+      - name: Install the ARM64 cross linker
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gcc-aarch64-linux-gnu
+
       - name: Install asset tooling
         shell: bash
         run: python -m pip install --upgrade zstandard
@@ -137,6 +149,10 @@ jobs:
       - name: Run unit tests
         shell: bash
         run: ./gradlew --no-daemon testDebugUnitTest
+
+      - name: Test the Rust core
+        shell: bash
+        run: cargo test --locked --manifest-path rust/origin-core/Cargo.toml
 
       - name: Test the universal layer
         shell: bash
@@ -210,6 +226,39 @@ jobs:
           echo "cert_sha256=${CERT_SHA256,,}" >> "${GITHUB_OUTPUT}"
           echo "Signed and verified. Certificate SHA-256: ${CERT_SHA256}"
 
+      - name: Build the Rust core CLI
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.name }}
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+        run: |
+          set -euo pipefail
+          MANIFEST="rust/origin-core/Cargo.toml"
+          cargo build --locked --release --manifest-path "${MANIFEST}"
+          cargo build --locked --release --target aarch64-unknown-linux-gnu --manifest-path "${MANIFEST}"
+
+          STAGE="build/core-stage"
+          rm -rf "${STAGE}"
+          mkdir -p "${STAGE}/x86_64" "${STAGE}/aarch64" release
+          cp rust/origin-core/target/release/origin-core "${STAGE}/x86_64/"
+          cp rust/origin-core/target/aarch64-unknown-linux-gnu/release/origin-core "${STAGE}/aarch64/"
+          cp LICENSE "${STAGE}/x86_64/"
+          cp LICENSE "${STAGE}/aarch64/"
+
+          # The same answers from a terminal, no JVM and no Node: one static binary per arch.
+          tar -czf "release/origin-core-${VERSION}-x86_64-unknown-linux-gnu.tar.gz" \
+            -C "${STAGE}/x86_64" origin-core LICENSE
+          tar -czf "release/origin-core-${VERSION}-aarch64-unknown-linux-gnu.tar.gz" \
+            -C "${STAGE}/aarch64" origin-core LICENSE
+
+          # Run the host binary from the archive exactly as a user would. The ARM64 build is
+          # checked for its architecture instead: this runner cannot execute it natively.
+          mkdir -p build/core-check
+          tar -xzf "release/origin-core-${VERSION}-x86_64-unknown-linux-gnu.tar.gz" -C build/core-check
+          build/core-check/origin-core fingerprint
+          rm -rf build/core-check
+          file "${STAGE}/aarch64/origin-core" | grep -q "aarch64"
+
       - name: Assemble release artifacts
         id: artifacts
         shell: bash
@@ -239,6 +288,10 @@ jobs:
           COMPANION_SHA256="$(sha256sum "release/OriginCompanion-${VERSION}.zip" | awk '{print $1}')"
           CLI_SHA256="$(sha256sum "release/origin-cli-${VERSION}.tgz" | awk '{print $1}')"
           SBOM_SHA256="$(sha256sum "release/OriginStudio-${VERSION}.sbom.cdx.json" | awk '{print $1}')"
+          CORE_X86="origin-core-${VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+          CORE_ARM="origin-core-${VERSION}-aarch64-unknown-linux-gnu.tar.gz"
+          CORE_X86_SHA256="$(sha256sum "release/${CORE_X86}" | awk '{print $1}')"
+          CORE_ARM_SHA256="$(sha256sum "release/${CORE_ARM}" | awk '{print $1}')"
 
           cat > release/release-manifest.json <<EOF
           {
@@ -264,7 +317,13 @@ jobs:
               "cliSha256": "${CLI_SHA256}",
               "npx": "npx github:OriginLabs1/OriginStudio",
               "sbom": "OriginStudio-${VERSION}.sbom.cdx.json",
-              "sbomSha256": "${SBOM_SHA256}"
+              "sbomSha256": "${SBOM_SHA256}",
+              "rustCore": {
+                "x86_64": "${CORE_X86}",
+                "x86_64Sha256": "${CORE_X86_SHA256}",
+                "aarch64": "${CORE_ARM}",
+                "aarch64Sha256": "${CORE_ARM_SHA256}"
+              }
             },
             "distribution": {
               "canonical": "https://github.com/OriginLabs1/OriginStudio/releases",
@@ -309,6 +368,9 @@ jobs:
             from the host at its own address. No build step, no account.
           - **CLI:** \`tar -xzf origin-cli-${VERSION}.tgz\` then \`node package/cli/origin.mjs doctor\`.
             Or \`npx github:OriginLabs1/OriginStudio doctor\`.
+          - **Rust core:** \`tar -xzf origin-core-${VERSION}-x86_64-unknown-linux-gnu.tar.gz\`
+            (or the \`aarch64\` archive), then \`./origin-core environments\`. No JVM, Node or
+            network required.
 
           See \`docs/universal.md\` for the full workflow.
 

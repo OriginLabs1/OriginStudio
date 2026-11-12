@@ -654,4 +654,55 @@ object OriginStudioIcons {
             "M9.8,8.6 L12,10.8 L14.2,8.6",
         )
     }
+
+    /** A microphone: dictation. */
+    val Mic: ImageVector by lazy {
+        stroked(
+            "Mic",
+            "M12,4.2 C10.7,4.2 9.7,5.2 9.7,6.5 V12 C9.7,13.3 10.7,14.3 12,14.3 C13.3,14.3 14.3,13.3 14.3,12 V6.5 C14.3,5.2 13.3,4.2 12,4.2 Z",
+            "M6.4,11.6 C6.4,14.9 8.9,17.5 12,17.5 C15.1,17.5 17.6,14.9 17.6,11.6",
+            "M12,17.5 V20.4",
+        )
+    }
+
+    /** A calendar page: automations. */
+    val Calendar: ImageVector by lazy {
+        stroked(
+            "Calendar",
+            "M5.4,6 H18.6 C19.4,6 20,6.6 20,7.4 V18.2 C20,19 19.4,19.6 18.6,19.6 H5.4 C4.6,19.6 4,19 4,18.2 V7.4 C4,6.6 4.6,6 5.4,6 Z",
+            "M4,10.2 H20",
+            "M8.2,4 V7.6",
+            "M15.8,4 V7.6",
+        )
+    }
+
+    /** A command key: Jump Anywhere. */
+    val Command: ImageVector by lazy {
+        stroked(
+            "Command",
+            "M9,9 H15 V15 H9 Z",
+            "M9,9 H6.6 C5.4,9 4.4,8 4.4,6.8 C4.4,5.6 5.4,4.6 6.6,4.6 C7.8,4.6 8.8,5.6 8.8,6.8 V17.2 C8.8,18.4 7.8,19.4 6.6,19.4 C5.4,19.4 4.4,18.4 4.4,17.2 C4.4,16 5.4,15 6.6,15 H9",
+            "M15,9 H17.4 C18.6,9 19.6,8 19.6,6.8 C19.6,5.6 18.6,4.6 17.4,4.6 C16.2,4.6 15.2,5.6 15.2,6.8 V17.2 C15.2,18.4 16.2,19.4 17.4,19.4 C18.6,19.4 19.6,18.4 19.6,17.2 C19.6,16 18.6,15 17.4,15 H15",
+        )
+    }
+
+    /** A chip: the Rust core / environments. */
+    val Chip: ImageVector by lazy {
+        stroked(
+            "Chip",
+            "M7.4,7.4 H16.6 V16.6 H7.4 Z",
+            "M10,4 V7", "M14,4 V7", "M10,17 V20", "M14,17 V20",
+            "M4,10 H7", "M4,14 H7", "M17,10 H20", "M17,14 H20",
+        )
+    }
+
+    /** Stacked layers: environments, or the device lab. */
+    val Layers: ImageVector by lazy {
+        stroked(
+            "Layers",
+            "M12,4 L20,8.4 L12,12.8 L4,8.4 Z",
+            "M4,12.4 L12,16.8 L20,12.4",
+            "M4,16.2 L12,20.6 L20,16.2",
+        )
+    }
 }

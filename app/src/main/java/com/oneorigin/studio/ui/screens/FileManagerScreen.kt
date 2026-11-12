@@ -209,6 +209,7 @@ fun FileManagerScreen(wide: Boolean, modifier: Modifier = Modifier, startGuestPa
     fun open(item: Item) {
         when {
             item.isDir -> go(guestOf(item.file))
+            item.file.extension.equals("pdf", ignoreCase = true) -> editing = item.file
             FileActions.opensInEditor(item.file) -> editing = item.file
             !isUser(item.file) -> message = context.getString(R.string.fm_system_view_only)
             else -> runCatching { FileActions.openWith(context, item.file) }.onFailure { message = it.message }

@@ -50,3 +50,62 @@ object Palette {
 /** Maps a stored tint index onto the palette, tolerating stale indices. */
 fun folderTint(index: Int): Color =
     Palette.FolderTints[index.mod(Palette.FolderTints.size)]
+
+/**
+ * Premium finishes added for the Studio surface in 0.0.10.
+ *
+ * These are not a second brand: Ink stays the default everywhere. They are calmer or
+ * warmer grounds for the Studio and its new surfaces, each checked for contrast against
+ * its own text colour. The accents are the portal aurora pushed further apart so a
+ * selected environment, an environment badge and a running automation never share a hue.
+ */
+object Premium {
+    val AuroraViolet = Color(0xFFC3B2FF)
+    val AuroraTeal = Color(0xFF4FD8D9)
+    val AuroraRose = Color(0xFFFFA8C8)
+    val AuroraGreen = Color(0xFFA8E6C0)
+
+    val GraphiteBg = Color(0xFF0B0C0E)
+    val GraphiteCard = Color(0xFF15171B)
+    val GraphiteBorder = Color(0xFF2B2F36)
+    val GraphiteAccent = Color(0xFFA8C6EA)
+    val GraphiteText = Color(0xFFF1F3F7)
+    val GraphiteDim = Color(0xFFAEB4BF)
+
+    val VerdantBg = Color(0xFF050B09)
+    val VerdantCard = Color(0xFF0D1714)
+    val VerdantBorder = Color(0xFF20362E)
+    val VerdantAccent = Color(0xFF8FE3C2)
+    val VerdantText = Color(0xFFECFFF7)
+    val VerdantDim = Color(0xFFA3C4B5)
+
+    val EmberBg = Color(0xFF0C0709)
+    val EmberCard = Color(0xFF1A1015)
+    val EmberBorder = Color(0xFF3A2430)
+    val EmberAccent = Color(0xFFFFB4C8)
+    val EmberText = Color(0xFFFFF1F4)
+    val EmberDim = Color(0xFFC9A9B6)
+
+    /** A finish: the ground, the surface, the line and the one accent. */
+    data class Finish(
+        val id: String,
+        val name: String,
+        val note: String,
+        val bg: Color,
+        val card: Color,
+        val border: Color,
+        val accent: Color,
+        val text: Color,
+        val dim: Color,
+    )
+
+    val Finishes = listOf(
+        Finish("ink", "Ink", "The original deep-space navy.", Palette.Bg, Palette.Card, Palette.Border, Palette.Accent, Palette.Text, Palette.TextDim),
+        Finish("aurora", "Aurora", "Violet leads, teal answers.", Color(0xFF070511), Color(0xFF140F24), Color(0xFF2C2347), AuroraViolet, Color(0xFFF2EDFF), Color(0xFFB4A9D6)),
+        Finish("graphite", "Graphite", "Neutral, for daylight.", GraphiteBg, GraphiteCard, GraphiteBorder, GraphiteAccent, GraphiteText, GraphiteDim),
+        Finish("verdant", "Verdant", "Green-black, calm all day.", VerdantBg, VerdantCard, VerdantBorder, VerdantAccent, VerdantText, VerdantDim),
+        Finish("ember", "Ember", "Rose-copper for the evening.", EmberBg, EmberCard, EmberBorder, EmberAccent, EmberText, EmberDim),
+    )
+
+    fun finish(id: String): Finish = Finishes.firstOrNull { it.id == id } ?: Finishes.first()
+}

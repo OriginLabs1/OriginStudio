@@ -1,6 +1,6 @@
 {
   "name": "@originlabs/origin",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Origin Studio's universal companion: create, verify, checkpoint and serve portable workspaces from any machine with Node.",
   "type": "module",
   "bin": {

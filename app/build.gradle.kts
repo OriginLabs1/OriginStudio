@@ -11,12 +11,12 @@ plugins {
 val originVersionName: String =
     providers.environmentVariable("ORIGIN_VERSION_NAME").orNull
         ?: providers.gradleProperty("origin.versionName").orNull
-        ?: "0.0.9"
+        ?: "0.0.10"
 val originVersionCode: Int =
     (
         providers.environmentVariable("ORIGIN_VERSION_CODE").orNull
             ?: providers.gradleProperty("origin.versionCode").orNull
-        )?.toIntOrNull() ?: 9
+        )?.toIntOrNull() ?: 10
 
 android {
     namespace = "com.oneorigin.studio"

@@ -36,3 +36,4 @@ Thumbs.db
 
 # Tooling
 node_modules/
+rust/origin-core/target/

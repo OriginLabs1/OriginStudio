@@ -7,6 +7,8 @@
 - Gradle 8.14.3 (via wrapper)
 - Python 3.9+ (used by the asset fetch scripts)
 - Node 20+ (the CLI and reference host; no npm dependencies)
+- Rust stable (the portable core and CLI in `rust/origin-core`; the app itself does not
+  load Rust at runtime)
 
 ## One-time setup
 
@@ -33,6 +35,14 @@ Android SDK or a device:
 ./gradlew :core:test
 node tools/validate-contracts.mjs
 node tools/check-evidence.mjs
+```
+
+The Rust core is platform-free and needs neither the Android SDK nor a device:
+
+```bash
+cargo test --manifest-path rust/origin-core/Cargo.toml
+cargo build --release --manifest-path rust/origin-core/Cargo.toml
+rust/origin-core/target/release/origin-core environments
 ```
 
 The universal layer is dependency-free Node (20+):
@@ -63,7 +73,7 @@ This is optional; CI is the canonical publisher. If you build locally you need t
 release keystore and its passwords (see [RELEASING.md](RELEASING.md)):
 
 ```bash
-ORIGIN_VERSION_NAME=0.0.9 ORIGIN_VERSION_CODE=9 ./gradlew :app:assembleRelease
+ORIGIN_VERSION_NAME=0.0.10 ORIGIN_VERSION_CODE=10 ./gradlew :app:assembleRelease
 ```
 
 On a low-memory machine R8 needs the heap to itself: stop other Gradle daemons and run
@@ -76,9 +86,22 @@ emulation; if the emulator cannot start it, point Gradle at a wrapper that invok
 directly:
 
 ```bash
-printf '#!/bin/sh\nexec qemu-x86_64 /opt/android-sdk/build-tools/36.0.0/aapt2 "$@"\n' \
+printf '#!/bin/sh\nexec /usr/bin/qemu-x86_64-static /opt/android-sdk/build-tools/36.0.0/aapt2 "$@"\n' \
   > /tmp/aapt2 && chmod +x /tmp/aapt2
 ./gradlew assembleDebug -Pandroid.aapt2FromMavenOverride=/tmp/aapt2
 ```
 
-CI runs on x86-64 and does not need this.
+Gradle checks that the override *is* an AAPT2 executable, so the wrapper must be named
+`aapt2`; a name like `aapt2-wrapper.sh` is rejected before the build starts. Use the static
+QEMU binary if the dynamic one is not on `PATH`.
+
+Very low-memory hosts may have the Gradle daemon killed while dexing. Run the dex tasks
+with a smaller heap before assembling, for example:
+
+```bash
+./gradlew :app:mergeProjectDexDebug :app:mergeExtDexDebug \
+  --max-workers=1 -Dorg.gradle.jvmargs="-Xmx1024m -XX:+UseSerialGC"
+./gradlew :app:assembleDebug -Pandroid.aapt2FromMavenOverride=/tmp/aapt2
+```
+
+CI runs on x86-64 and does not need any of this.

@@ -373,4 +373,66 @@
     <string name="acp_history_delete_confirm">Delete this session?</string>
     <string name="acp_agent_unsupported_title">Not available as a chat on Android</string>
     <string name="acp_antigravity_unsupported">Google Antigravity\'s chat server cannot run on Android. Use the agy command in a Shell session instead. You can delete this chat session.</string>
+
+    <!-- Studio -->
+    <string name="cd_studio">Studio</string>
+    <string name="studio_title">Studio</string>
+    <string name="studio_subtitle">The room your agents work in. Phone first, host when you have one.</string>
+    <string name="studio_local_and_host">Local + host</string>
+    <string name="studio_jump_title">Jump anywhere</string>
+    <string name="studio_jump_body">Workspaces, sessions, repos, files, hosts, agents and actions.</string>
+    <string name="studio_environments">Environments</string>
+    <string name="studio_honest_limits">Honest limits</string>
+    <string name="studio_show_details">Details</string>
+    <string name="studio_why">Why Origin Studio</string>
+    <string name="studio_agents">Agents</string>
+    <string name="studio_agents_body">Pick the agent new sessions start with. Switching never signs anything out; each agent keeps its own login.</string>
+    <string name="studio_agents_offline">No registry agents cached yet. Connect to the network once, or open an agent\'s own terminal to sign in.</string>
+    <string name="studio_any_cli">Also: any CLI agent, in a shell session, with the same files and previews.</string>
+    <string name="studio_usage">Usage and accounts</string>
+    <string name="studio_usage_today">%1$d of %2$d prompts today</string>
+    <string name="studio_usage_unlimited">%1$d prompts today</string>
+    <string name="studio_usage_reset">This device only · budget resets at midnight</string>
+    <string name="studio_usage_note">Local count, not a provider quota. Agent limits stay in the agent\'s own output, where they are true.</string>
+    <string name="studio_automations">Scheduled commands</string>
+    <string name="studio_automation_running">Running now…</string>
+    <string name="studio_automation_next">Next %1$s</string>
+    <string name="studio_automation_waiting">Waiting for the next slot</string>
+    <string name="studio_automation_paused">Paused</string>
+    <string name="studio_run_now">Run now</string>
+    <string name="studio_lab">Device lab and computer use</string>
+    <string name="studio_lab_device_title">Device lab</string>
+    <string name="studio_lab_device_body">Roadmap: an Android emulator beside the agent on a paired host with the Android SDK. Today the preview pane already switches between phone and desktop widths.</string>
+    <string name="studio_lab_computer_title">Computer use</string>
+    <string name="studio_lab_computer_body">The agent can drive the built-in browser: open, tap, type and screenshot, with the same approval sheet and a pause the moment you take over.</string>
+    <string name="studio_finishes">Premium finishes</string>
+    <string name="studio_finishes_body">Five grounds, one contrast discipline. Ink stays the default; the others are for daylight, evening and long reviews.</string>
+    <string name="studio_core_footer">origin.core/v1 · Rust core · release 0.0.10</string>
+
+    <!-- Jump Anywhere -->
+    <string name="jump_title">Jump anywhere</string>
+    <string name="jump_hint">Search workspaces, sessions, environments, agents and actions</string>
+    <string name="jump_empty">No match. Try a project, a session, an environment or “settings”.</string>
+    <string name="jump_open">Open</string>
+    <string name="jump_section_places">Places</string>
+    <string name="jump_section_actions">Actions</string>
+    <string name="jump_close">Close</string>
+
+    <!-- Composer -->
+    <string name="acp_dictate">Dictate</string>
+    <string name="acp_attach_file">Attach any file</string>
+    <string name="acp_drop_hint">Drop to attach</string>
+    <string name="acp_dictation_unavailable">No speech recogniser is available. Install one from your keyboard or system settings.</string>
+    <string name="acp_attached_file">Attached %1$s</string>
+    <string name="acp_attach_too_large">%1$s is too large to attach here (over 2 MB).</string>
+    <string name="acp_attach_unreadable">Could not read %1$s.</string>
+
+    <!-- Previews -->
+    <string name="preview_pdf_page">Page %1$d of %2$d</string>
+    <string name="preview_pdf_previous">Previous page</string>
+    <string name="preview_pdf_next">Next page</string>
+    <string name="preview_pdf_failed">This PDF could not be rendered.</string>
+    <string name="preview_markdown">Preview</string>
+    <string name="preview_markdown_source">Source</string>
+    <string name="preview_outline">Outline</string>
 </resources>

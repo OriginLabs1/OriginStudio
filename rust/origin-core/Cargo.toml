@@ -1,0 +1,27 @@
+[package]
+name = "origin-core"
+version = "0.0.10"
+edition = "2021"
+license = "Apache-2.0"
+description = "The portable, auditable core of Origin Studio: environments, jump index, previews, usage, automations and agents."
+repository = "https://github.com/OriginLabs1/OriginStudio"
+publish = false
+
+[lib]
+name = "origin_core"
+path = "src/lib.rs"
+
+[[bin]]
+name = "origin-core"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
