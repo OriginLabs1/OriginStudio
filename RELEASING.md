@@ -64,11 +64,11 @@ apksigner verify --print-certs app/build/outputs/apk/release/OriginStudio-releas
 ## Release a version
 
 ```bash
-git tag v0.0.9
-git push origin v0.0.9
+git tag v0.0.10
+git push origin v0.0.10
 ```
 
-Or run **Actions → Release → Run workflow** with a version such as `0.0.9`. The workflow:
+Or run **Actions → Release → Run workflow** with a version such as `0.0.10`. The workflow:
 
 1. derives `versionName` and `versionCode` from the tag (`major * 10000 + minor * 100 + patch`);
 2. stages the pinned Debian rootfs, PRoot binaries and CA bundle;

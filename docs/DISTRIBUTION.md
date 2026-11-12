@@ -2,7 +2,7 @@
 
 **Canonical source:** <https://github.com/OriginLabs1/OriginStudio/releases>
 **Package:** `com.oneorigin.studio` · **Licence:** Apache-2.0
-**Current line:** `v0.0.9`
+**Current line:** `v0.0.10`
 
 Every channel below points at the same signed artifact. No channel re-signs,
 rebuilds or silently replaces an APK.
@@ -49,8 +49,8 @@ rootfs provenance. Until then, do not tell users F-Droid is coming.
 
 The realistic next channel: it accepts developer-built APKs, tolerates the
 sideload model, and mirrors the GitHub release. Submission needs the release
-manifest, the signing certificate, a description and a licence. Do it after
-`v0.0.3` has a stable release page.
+manifest, the signing certificate, a description and a licence. Submit once the
+v0.0.10 release page has been stable for a while.
 
 ## What ships in a release
 
@@ -85,11 +85,11 @@ The dual-mode shift is distributed as source, deliberately:
 | Reference host | `hosts/hub/` | `node hosts/hub/server.js`; no dependencies |
 | Companion | `companion/` | Served by the host, or unzipped on any static server; no build step |
 | CLI | `cli/` | `node cli/origin.mjs`, the release tarball, or `npx github:OriginLabs1/OriginStudio` |
+| Constitution | `CONSTITUTION.md` | Linked from the README and the website |
 
 The universal artifacts are first-class release assets, not source-only extras. They are
 checksummed with the APK and described in `release-manifest.json`. See
 [`universal.md`](universal.md).
-| Constitution | `CONSTITUTION.md` | Linked from the README and the website |
 
 A downstream host implementation is conformant only when it passes the same
 fixtures and the reference-host tests. A fork that changes the wire format must
