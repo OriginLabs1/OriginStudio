@@ -133,7 +133,10 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends gcc-aarch64-linux-gnu
+          # The cross compiler alone cannot link a C runtime; the ARM64 libc headers and
+          # startup objects (Scrt1.o, crti.o) come from the -cross dev package.
+          sudo apt-get install -y --no-install-recommends \
+            gcc-aarch64-linux-gnu libc6-dev-arm64-cross
 
       - name: Install asset tooling
         shell: bash
